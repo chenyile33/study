@@ -1,5 +1,6 @@
 package com.example.springai.controller;
 
+import jakarta.annotation.Resource;
 import org.reactivestreams.Publisher;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.http.MediaType;
@@ -15,11 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/stream")
 public class StreamController {
 
-    private final ChatClient chatClient;
-
-    public StreamController(ChatClient.Builder builder) {
-        this.chatClient = builder.defaultSystem("You are a helpful assistant.").build();
-    }
+    @Resource
+    ChatClient chatClient;
 
     // GET /api/stream?q=写一段关于春天的短文
     @GetMapping(produces = MediaType.TEXT_EVENT_STREAM_VALUE)
