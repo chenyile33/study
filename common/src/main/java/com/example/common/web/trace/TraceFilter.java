@@ -1,4 +1,4 @@
-package com.example.study.web.filter;
+package com.example.common.web.trace;
 
 import com.example.common.core.trace.TraceConstants;
 import com.example.common.core.trace.TraceContext;
@@ -8,15 +8,15 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.MDC;
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
 /**
- * 为每个 Web 请求准备 traceId，并写入日志 MDC。
+ * 为每个 Web 请求准备 traceId，并写入响应头和日志 MDC。
+ *
+ * <p>过滤器是 Web 层 trace 的入口；核心 trace 状态仍然由 common-core 的 TraceContext 管理。</p>
  */
-@Component
 public class TraceFilter extends OncePerRequestFilter {
 
     @Override
@@ -40,7 +40,7 @@ public class TraceFilter extends OncePerRequestFilter {
     }
 
     /**
-     * 兼容同一线程里已有 MDC traceId 的场景，避免直接清空外层上下文。
+     * 恢复进入过滤器前的 MDC，避免线程复用时串 traceId。
      */
     private void restoreMdcTraceId(String previousMdcTraceId) {
         if (previousMdcTraceId == null) {

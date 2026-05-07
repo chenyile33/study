@@ -1,4 +1,4 @@
-package com.example.study.web.advice;
+package com.example.common.web.exception;
 
 import com.example.common.core.error.CommonErrorCode;
 import com.example.common.core.exception.BusinessException;
@@ -14,7 +14,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 /**
- * 统一处理 Web 层异常，保证接口返回结构稳定。
+ * 统一处理常见 Web 异常，并保持 Result 返回结构稳定。
+ *
+ * <p>这个类放在 common 中，但只有应用显式启用 common-web 后才会注册到 Spring 容器。</p>
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
