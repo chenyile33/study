@@ -3,10 +3,11 @@ package com.example.study.web.advice;
 import com.example.common.core.error.CommonErrorCode;
 import com.example.common.core.exception.BusinessException;
 import com.example.common.core.result.Result;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -38,6 +39,12 @@ public class GlobalExceptionHandler {
             MethodArgumentTypeMismatchException exception) {
         return ResponseEntity.badRequest()
                 .body(Result.fail(CommonErrorCode.PARAM_ERROR.getCode(), exception.getName() + "参数类型错误"));
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Result<Void>> handleHttpMessageNotReadableException(HttpMessageNotReadableException exception) {
+        return ResponseEntity.badRequest()
+                .body(Result.fail(CommonErrorCode.PARAM_ERROR.getCode(), "请求体格式错误"));
     }
 
     @ExceptionHandler(Exception.class)
