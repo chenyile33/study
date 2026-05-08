@@ -7,9 +7,11 @@ import com.example.study.user.dto.CreateUserRequest;
 import com.example.study.user.dto.UserDetailResponse;
 import com.example.study.user.dto.UserListItemResponse;
 import com.example.study.user.service.UserDemoService;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -30,7 +32,7 @@ public class UserDemoController {
     }
 
     @PostMapping
-    public Result<UserDetailResponse> createUser(@RequestBody(required = false) CreateUserRequest request) {
+    public Result<UserDetailResponse> createUser(@Valid @RequestBody(required = false) CreateUserRequest request) {
         log.info("创建用户，username={}", request == null ? null : request.getUsername());
         return Result.success(userDemoService.createUser(request));
     }
@@ -43,11 +45,11 @@ public class UserDemoController {
 
     @GetMapping
     public Result<PageResult<UserListItemResponse>> pageUsers(
-            @RequestParam(defaultValue = "1") int pageNum,
-            @RequestParam(defaultValue = "10") int pageSize,
+            @ModelAttribute PageParam pageParam,
             @RequestParam(required = false) String keyword
     ) {
-        log.info("分页查询用户，pageNum={}, pageSize={}, keyword={}", pageNum, pageSize, keyword);
-        return Result.success(userDemoService.pageUsers(PageParam.of(pageNum, pageSize), keyword));
+        log.info("分页查询用户，pageNum={}, pageSize={}, keyword={}",
+                pageParam.getPageNum(), pageParam.getPageSize(), keyword);
+        return Result.success(userDemoService.pageUsers(pageParam, keyword));
     }
 }
