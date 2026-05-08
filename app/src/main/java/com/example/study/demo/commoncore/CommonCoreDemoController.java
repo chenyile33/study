@@ -1,4 +1,4 @@
-package com.example.study.web.controller;
+package com.example.study.demo.commoncore;
 
 import com.example.common.core.error.CommonErrorCode;
 import com.example.common.core.exception.BusinessException;

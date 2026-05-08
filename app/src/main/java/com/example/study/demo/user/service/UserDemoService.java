@@ -1,15 +1,15 @@
-package com.example.study.user.service;
+package com.example.study.demo.user.service;
 
 import com.example.common.core.error.CommonErrorCode;
 import com.example.common.core.exception.BusinessException;
 import com.example.common.core.page.PageParam;
 import com.example.common.core.page.PageResult;
 import com.example.common.core.util.AssertUtils;
-import com.example.study.user.domain.UserProfile;
-import com.example.study.user.dto.CreateUserRequest;
-import com.example.study.user.dto.UserDetailResponse;
-import com.example.study.user.dto.UserListItemResponse;
-import com.example.study.user.repository.InMemoryUserRepository;
+import com.example.study.demo.user.domain.UserProfile;
+import com.example.study.demo.user.dto.CreateUserRequest;
+import com.example.study.demo.user.dto.UserDetailResponse;
+import com.example.study.demo.user.dto.UserListItemResponse;
+import com.example.study.demo.user.repository.InMemoryUserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

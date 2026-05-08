@@ -1,12 +1,12 @@
-package com.example.study.user.controller;
+package com.example.study.demo.user.controller;
 
 import com.example.common.core.page.PageParam;
 import com.example.common.core.page.PageResult;
 import com.example.common.core.result.Result;
-import com.example.study.user.dto.CreateUserRequest;
-import com.example.study.user.dto.UserDetailResponse;
-import com.example.study.user.dto.UserListItemResponse;
-import com.example.study.user.service.UserDemoService;
+import com.example.study.demo.user.dto.CreateUserRequest;
+import com.example.study.demo.user.dto.UserDetailResponse;
+import com.example.study.demo.user.dto.UserListItemResponse;
+import com.example.study.demo.user.service.UserDemoService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,6 +1,6 @@
-package com.example.study.user.repository;
+package com.example.study.demo.user.repository;
 
-import com.example.study.user.domain.UserProfile;
+import com.example.study.demo.user.domain.UserProfile;
 import org.springframework.stereotype.Repository;
 
 import java.util.Comparator;

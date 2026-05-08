@@ -1,6 +1,6 @@
-package com.example.study.user.dto;
+package com.example.study.demo.user.dto;
 
-import com.example.study.user.domain.UserProfile;
+import com.example.study.demo.user.domain.UserProfile;
 
 public class UserListItemResponse {
 
