@@ -1,5 +1,7 @@
 package com.example.common.web.exception;
 
+import com.example.common.core.auth.AuthErrorCode;
+import com.example.common.core.auth.AuthException;
 import com.example.common.core.error.CommonErrorCode;
 import com.example.common.core.exception.BusinessException;
 import com.example.common.core.result.Result;
@@ -30,6 +32,15 @@ import java.util.Iterator;
 public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    /**
+     * 认证异常需要保留 401/403 语义，不能按普通业务参数错误处理。
+     */
+    @ExceptionHandler(AuthException.class)
+    public ResponseEntity<Result<Void>> handleAuthException(AuthException exception) {
+        HttpStatus status = resolveAuthStatus(exception);
+        return ResponseEntity.status(status).body(Result.fail(exception.getCode(), exception.getMessage()));
+    }
 
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<Result<Void>> handleBusinessException(BusinessException exception) {
@@ -83,6 +94,13 @@ public class GlobalExceptionHandler {
             return HttpStatus.INTERNAL_SERVER_ERROR;
         }
         return HttpStatus.BAD_REQUEST;
+    }
+
+    private HttpStatus resolveAuthStatus(AuthException exception) {
+        if (AuthErrorCode.FORBIDDEN.getCode() == exception.getCode()) {
+            return HttpStatus.FORBIDDEN;
+        }
+        return HttpStatus.UNAUTHORIZED;
     }
 
     private ResponseEntity<Result<Void>> badRequest(String message) {
