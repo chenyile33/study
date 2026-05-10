@@ -1,6 +1,6 @@
 package com.example.common.web.auth;
 
-import org.springframework.core.env.Environment;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -13,7 +13,8 @@ import java.util.Set;
  *
  * <p>由 @EnableCommonAuthWeb 引入后读取 common.auth.* 配置。</p>
  */
-public final class CommonAuthProperties {
+@ConfigurationProperties(prefix = "common.auth")
+public class CommonAuthProperties {
 
     public static final String DEFAULT_TOKEN_HEADER = "Authorization";
     public static final String DEFAULT_TOKEN_PREFIX = "Bearer";
@@ -21,104 +22,56 @@ public final class CommonAuthProperties {
     /**
      * 是否启用认证过滤逻辑。
      */
-    private final boolean enabled;
+    private boolean enabled = true;
 
     /**
      * 存放 token 的请求头名称。
      */
-    private final String tokenHeader;
+    private String tokenHeader = DEFAULT_TOKEN_HEADER;
 
     /**
      * token 前缀，例如 Bearer。
      */
-    private final String tokenPrefix;
+    private String tokenPrefix = DEFAULT_TOKEN_PREFIX;
 
     /**
      * 允许匿名访问的路径模式。
      */
-    private final List<String> permitPaths;
-
-    private CommonAuthProperties(boolean enabled, String tokenHeader, String tokenPrefix, List<String> permitPaths) {
-        this.enabled = enabled;
-        this.tokenHeader = hasText(tokenHeader) ? tokenHeader.trim() : DEFAULT_TOKEN_HEADER;
-        this.tokenPrefix = tokenPrefix == null ? DEFAULT_TOKEN_PREFIX : tokenPrefix.trim();
-        this.permitPaths = Collections.unmodifiableList(normalizeList(permitPaths));
-    }
-
-    public static CommonAuthProperties from(Environment environment) {
-        // 认证能力已经由注解显式启用；enabled 用于运行时临时关闭过滤逻辑。
-        boolean enabled = readBoolean(environment);
-        String tokenHeader = readFirst(environment, DEFAULT_TOKEN_HEADER,
-                "common.auth.token-header", "common.auth.tokenHeader");
-        String tokenPrefix = readFirst(environment, DEFAULT_TOKEN_PREFIX,
-                "common.auth.token-prefix", "common.auth.tokenPrefix");
-        List<String> permitPaths = readList(environment,
-                "common.auth.permit-paths", "common.auth.permitPaths");
-        return new CommonAuthProperties(enabled, tokenHeader, tokenPrefix, permitPaths);
-    }
+    private List<String> permitPaths = new ArrayList<>();
 
     public boolean isEnabled() {
         return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 
     public String getTokenHeader() {
         return tokenHeader;
     }
 
+    public void setTokenHeader(String tokenHeader) {
+        this.tokenHeader = hasText(tokenHeader) ? tokenHeader.trim() : DEFAULT_TOKEN_HEADER;
+    }
+
     public String getTokenPrefix() {
         return tokenPrefix;
     }
 
+    public void setTokenPrefix(String tokenPrefix) {
+        this.tokenPrefix = tokenPrefix == null ? DEFAULT_TOKEN_PREFIX : tokenPrefix.trim();
+    }
+
     public List<String> getPermitPaths() {
-        return permitPaths;
-    }
-
-    private static boolean readBoolean(Environment environment) {
-        if (environment == null) {
-            return true;
-        }
-        // 默认启用；只有显式配置 common.auth.enabled=false 时关闭。
-        Boolean value = environment.getProperty("common.auth.enabled", Boolean.class);
-        return value == null || value;
+        return Collections.unmodifiableList(permitPaths);
     }
 
     /**
-     * 按多个配置 key 顺序读取，兼容 kebab-case 和 camelCase。
+     * Spring Boot 会把 common.auth.permit-paths 绑定到这里。
      */
-    private static String readFirst(Environment environment, String defaultValue, String... keys) {
-        if (environment == null) {
-            return defaultValue;
-        }
-        for (String key : keys) {
-            String value = environment.getProperty(key);
-            if (hasText(value)) {
-                return value;
-            }
-        }
-        return defaultValue;
-    }
-
-    /**
-     * 读取列表配置，支持 common.auth.permit-paths=a,b 和 permit-paths[0] 两种形式。
-     */
-    private static List<String> readList(Environment environment, String... keys) {
-        List<String> values = new ArrayList<>();
-        if (environment == null) {
-            return values;
-        }
-
-        // 同时兼容逗号分隔和 YAML 列表两种写法。
-        for (String key : keys) {
-            addDelimited(values, environment.getProperty(key));
-            for (int i = 0; ; i++) {
-                String item = environment.getProperty(key + "[" + i + "]");
-                if (item == null) {
-                    break;
-                }
-                addDelimited(values, item);
-            }
-        }
-        return values;
+    public void setPermitPaths(List<String> permitPaths) {
+        this.permitPaths = normalizeList(permitPaths);
     }
 
     /**
@@ -141,18 +94,6 @@ public final class CommonAuthProperties {
         String path = value.trim();
         // permit-paths 可以写成 api/login，内部统一成 /api/login。
         return path.startsWith("/") ? path : "/" + path;
-    }
-
-    private static void addDelimited(List<String> values, String rawValue) {
-        if (!hasText(rawValue)) {
-            return;
-        }
-        String[] items = rawValue.split(",");
-        for (String item : items) {
-            if (hasText(item)) {
-                values.add(item.trim());
-            }
-        }
     }
 
     private static boolean hasText(String value) {

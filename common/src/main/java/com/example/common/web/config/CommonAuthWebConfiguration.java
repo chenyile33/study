@@ -5,9 +5,9 @@ import com.example.common.web.auth.AuthFilter;
 import com.example.common.web.auth.BearerTokenResolver;
 import com.example.common.web.auth.CommonAuthProperties;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 
 /**
  * common-web 认证能力的显式装配入口。
@@ -15,12 +15,8 @@ import org.springframework.core.env.Environment;
  * <p>只有使用 @EnableCommonAuthWeb 时才会引入本配置。</p>
  */
 @Configuration(proxyBeanMethods = false)
+@EnableConfigurationProperties(CommonAuthProperties.class)
 public class CommonAuthWebConfiguration {
-
-    @Bean
-    public CommonAuthProperties commonAuthProperties(Environment environment) {
-        return CommonAuthProperties.from(environment);
-    }
 
     @Bean
     public BearerTokenResolver bearerTokenResolver(CommonAuthProperties commonAuthProperties) {
