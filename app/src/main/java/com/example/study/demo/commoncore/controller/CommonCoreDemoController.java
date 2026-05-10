@@ -1,4 +1,4 @@
-package com.example.study.demo.commoncore;
+package com.example.study.demo.commoncore.controller;
 
 import com.example.common.core.error.CommonErrorCode;
 import com.example.common.core.exception.BusinessException;
@@ -8,7 +8,6 @@ import com.example.common.core.util.AssertUtils;
 import jakarta.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
