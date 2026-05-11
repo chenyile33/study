@@ -43,6 +43,7 @@ public class DemoTokenService implements TokenAuthenticator {
                 account.getId(),
                 account.getUsername(),
                 account.getRoles(),
+                account.getPermissions(),
                 Map.of("source", "auth-demo")
         );
         return LoginResponse.from(tokenStore.create(principal, TOKEN_TTL));

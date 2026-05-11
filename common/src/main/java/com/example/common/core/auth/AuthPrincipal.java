@@ -35,28 +35,34 @@ public final class AuthPrincipal implements Serializable {
     private final Set<String> roles;
 
     /**
+     * 当前主体拥有的权限码快照。
+     */
+    private final Set<String> permissions;
+
+    /**
      * 项目自定义扩展信息，例如 tenantId、clientId。
      */
     private final Map<String, String> attributes;
 
     private AuthPrincipal(String principalId, String principalName, Collection<String> roles,
-                          Map<String, String> attributes) {
+                          Collection<String> permissions, Map<String, String> attributes) {
         // 构造时完成标准化，保证对象创建后就是不可变、可直接使用的主体快照。
         this.principalId = requireText(principalId);
         this.principalName = principalName == null ? "" : principalName.trim();
-        this.roles = Collections.unmodifiableSet(normalizeRoles(roles));
+        this.roles = Collections.unmodifiableSet(normalizeValues(roles));
+        this.permissions = Collections.unmodifiableSet(normalizeValues(permissions));
         this.attributes = Collections.unmodifiableMap(normalizeAttributes(attributes));
     }
 
     public static AuthPrincipal of(String principalId, String principalName) {
-        return new AuthPrincipal(principalId, principalName, Set.of(), Map.of());
+        return new AuthPrincipal(principalId, principalName, Set.of(), Set.of(), Map.of());
     }
 
     /**
      * 创建带角色集合的认证主体。
      */
     public static AuthPrincipal of(String principalId, String principalName, Collection<String> roles) {
-        return new AuthPrincipal(principalId, principalName, roles, Map.of());
+        return new AuthPrincipal(principalId, principalName, roles, Set.of(), Map.of());
     }
 
     /**
@@ -64,7 +70,15 @@ public final class AuthPrincipal implements Serializable {
      */
     public static AuthPrincipal of(String principalId, String principalName, Collection<String> roles,
                                    Map<String, String> attributes) {
-        return new AuthPrincipal(principalId, principalName, roles, attributes);
+        return new AuthPrincipal(principalId, principalName, roles, Set.of(), attributes);
+    }
+
+    /**
+     * 创建带角色、权限和扩展属性的认证主体。
+     */
+    public static AuthPrincipal of(String principalId, String principalName, Collection<String> roles,
+                                   Collection<String> permissions, Map<String, String> attributes) {
+        return new AuthPrincipal(principalId, principalName, roles, permissions, attributes);
     }
 
     /**
@@ -82,6 +96,23 @@ public final class AuthPrincipal implements Serializable {
             return false;
         }
         return requiredRoles.stream().anyMatch(this::hasRole);
+    }
+
+    /**
+     * 判断当前主体是否拥有指定权限码。
+     */
+    public boolean hasPermission(String permission) {
+        return hasText(permission) && permissions.contains(permission.trim());
+    }
+
+    /**
+     * 判断当前主体是否拥有任意一个指定权限码。
+     */
+    public boolean hasAnyPermission(Collection<String> requiredPermissions) {
+        if (requiredPermissions == null || requiredPermissions.isEmpty()) {
+            return false;
+        }
+        return requiredPermissions.stream().anyMatch(this::hasPermission);
     }
 
     /**
@@ -106,23 +137,27 @@ public final class AuthPrincipal implements Serializable {
         return roles;
     }
 
+    public Set<String> getPermissions() {
+        return permissions;
+    }
+
     public Map<String, String> getAttributes() {
         return attributes;
     }
 
-    private static Set<String> normalizeRoles(Collection<String> roles) {
-        if (roles == null || roles.isEmpty()) {
+    private static Set<String> normalizeValues(Collection<String> values) {
+        if (values == null || values.isEmpty()) {
             return new LinkedHashSet<>();
         }
 
-        // 去掉空角色并保持传入顺序，便于日志和调试时观察。
-        Set<String> normalizedRoles = new LinkedHashSet<>();
-        for (String role : roles) {
-            if (hasText(role)) {
-                normalizedRoles.add(role.trim());
+        // 去掉空值并保持传入顺序，便于日志和调试时观察。
+        Set<String> normalizedValues = new LinkedHashSet<>();
+        for (String value : values) {
+            if (hasText(value)) {
+                normalizedValues.add(value.trim());
             }
         }
-        return normalizedRoles;
+        return normalizedValues;
     }
 
     private static Map<String, String> normalizeAttributes(Map<String, String> attributes) {

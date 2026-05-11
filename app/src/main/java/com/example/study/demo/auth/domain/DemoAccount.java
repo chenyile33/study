@@ -30,11 +30,17 @@ public class DemoAccount {
      */
     private final List<String> roles;
 
-    public DemoAccount(String id, String username, String password, List<String> roles) {
+    /**
+     * 登录成功后写入认证主体的权限码快照。
+     */
+    private final List<String> permissions;
+
+    public DemoAccount(String id, String username, String password, List<String> roles, List<String> permissions) {
         this.id = id;
         this.username = username;
         this.password = password;
         this.roles = List.copyOf(roles);
+        this.permissions = List.copyOf(permissions);
     }
 
     public boolean matchesPassword(String rawPassword) {

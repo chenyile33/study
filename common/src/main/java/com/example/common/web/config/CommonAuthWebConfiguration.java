@@ -1,7 +1,10 @@
 package com.example.common.web.config;
 
 import com.example.common.core.auth.TokenAuthenticator;
+import com.example.common.core.auth.authorization.AuthorizationChecker;
+import com.example.common.core.auth.authorization.DefaultAuthorizationChecker;
 import com.example.common.web.auth.AuthFilter;
+import com.example.common.web.auth.AuthorizationInterceptor;
 import com.example.common.web.auth.BearerTokenResolver;
 import com.example.common.web.auth.CommonAuthProperties;
 import org.springframework.beans.factory.ObjectProvider;
@@ -33,5 +36,20 @@ public class CommonAuthWebConfiguration {
             throw new IllegalStateException("common auth is enabled, but TokenAuthenticator bean is missing");
         }
         return new AuthFilter(commonAuthProperties, bearerTokenResolver, tokenAuthenticator);
+    }
+
+    @Bean
+    public AuthorizationInterceptor commonAuthorizationInterceptor(
+            CommonAuthProperties commonAuthProperties,
+            ObjectProvider<AuthorizationChecker> authorizationCheckerProvider) {
+        // 允许业务项目提供自己的 AuthorizationChecker；没有提供时使用 AuthPrincipal 快照判断。
+        AuthorizationChecker authorizationChecker = authorizationCheckerProvider
+                .getIfAvailable(DefaultAuthorizationChecker::new);
+        return new AuthorizationInterceptor(commonAuthProperties, authorizationChecker);
+    }
+
+    @Bean
+    public CommonAuthWebMvcConfigurer commonAuthWebMvcConfigurer(AuthorizationInterceptor authorizationInterceptor) {
+        return new CommonAuthWebMvcConfigurer(authorizationInterceptor);
     }
 }

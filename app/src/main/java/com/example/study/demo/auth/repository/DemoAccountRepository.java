@@ -13,9 +13,24 @@ import java.util.Optional;
 @Repository
 public class DemoAccountRepository {
 
+    /**
+     * Demo 固定账号：这里故意让 admin 和 alice 的角色不同、权限部分重叠，便于验证 403 场景。
+     */
     private final Map<String, DemoAccount> accounts = Map.of(
-            "admin", new DemoAccount("1", "admin", "admin123", List.of("ADMIN", "USER")),
-            "alice", new DemoAccount("2", "alice", "alice123", List.of("USER"))
+            "admin", new DemoAccount(
+                    "1",
+                    "admin",
+                    "admin123",
+                    List.of("ADMIN", "USER"),
+                    List.of("secure:read", "secure:admin")
+            ),
+            "alice", new DemoAccount(
+                    "2",
+                    "alice",
+                    "alice123",
+                    List.of("USER"),
+                    List.of("secure:read")
+            )
     );
 
     public Optional<DemoAccount> findByUsername(String username) {

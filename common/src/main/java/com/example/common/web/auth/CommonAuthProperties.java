@@ -20,9 +20,11 @@ public class CommonAuthProperties {
     public static final String DEFAULT_TOKEN_PREFIX = "Bearer";
 
     /**
-     * 是否启用认证过滤逻辑。
+     * 是否启用认证和授权拦截逻辑。
+     *
+     * <p>默认关闭，避免未知项目只引用 common 或误引入配置类后改变请求行为。</p>
      */
-    private boolean enabled = true;
+    private boolean enabled;
 
     /**
      * 存放 token 的请求头名称。

@@ -53,6 +53,24 @@ public final class AuthContext {
     }
 
     /**
+     * 判断当前认证主体是否拥有指定权限码；未登录时返回 false。
+     */
+    public static boolean hasPermission(String permission) {
+        return getPrincipal()
+                .map(principal -> principal.hasPermission(permission))
+                .orElse(false);
+    }
+
+    /**
+     * 判断当前认证主体是否拥有任意一个指定权限码；未登录时返回 false。
+     */
+    public static boolean hasAnyPermission(Collection<String> permissions) {
+        return getPrincipal()
+                .map(principal -> principal.hasAnyPermission(permissions))
+                .orElse(false);
+    }
+
+    /**
      * 设置当前线程的认证主体。传入 null 会清理上下文。
      */
     public static void setPrincipal(AuthPrincipal principal) {

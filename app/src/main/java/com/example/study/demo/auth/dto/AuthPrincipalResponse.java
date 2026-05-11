@@ -15,13 +15,15 @@ public class AuthPrincipalResponse {
     private final String principalId;
     private final String principalName;
     private final Set<String> roles;
+    private final Set<String> permissions;
     private final Map<String, String> attributes;
 
-    private AuthPrincipalResponse(String principalId, String principalName, Set<String> roles,
+    private AuthPrincipalResponse(String principalId, String principalName, Set<String> roles, Set<String> permissions,
                                   Map<String, String> attributes) {
         this.principalId = principalId;
         this.principalName = principalName;
         this.roles = roles;
+        this.permissions = permissions;
         this.attributes = attributes;
     }
 
@@ -30,6 +32,7 @@ public class AuthPrincipalResponse {
                 principal.getPrincipalId(),
                 principal.getPrincipalName(),
                 principal.getRoles(),
+                principal.getPermissions(),
                 principal.getAttributes()
         );
     }
