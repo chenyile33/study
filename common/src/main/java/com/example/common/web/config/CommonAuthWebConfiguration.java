@@ -11,6 +11,9 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.lang.NonNull;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
  * common-web 认证能力的显式装配入口。
@@ -49,7 +52,13 @@ public class CommonAuthWebConfiguration {
     }
 
     @Bean
-    public CommonAuthWebMvcConfigurer commonAuthWebMvcConfigurer(AuthorizationInterceptor authorizationInterceptor) {
-        return new CommonAuthWebMvcConfigurer(authorizationInterceptor);
+    public WebMvcConfigurer commonAuthWebMvcConfigurer(AuthorizationInterceptor authorizationInterceptor) {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addInterceptors(@NonNull InterceptorRegistry registry) {
+                // 注册到 Spring MVC 后，Controller 方法执行前会先进入 AuthorizationInterceptor。
+                registry.addInterceptor(authorizationInterceptor);
+            }
+        };
     }
 }
