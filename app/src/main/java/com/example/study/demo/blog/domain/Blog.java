@@ -1,4 +1,4 @@
-package com.example.study.demo.mybatis.blog.domain;
+package com.example.study.demo.blog.domain;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;

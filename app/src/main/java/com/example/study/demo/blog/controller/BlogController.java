@@ -1,13 +1,13 @@
-package com.example.study.demo.mybatis.blog.controller;
+package com.example.study.demo.blog.controller;
 
 import com.example.common.core.auth.authorization.RequirePermissions;
 import com.example.common.core.page.PageParam;
 import com.example.common.core.page.PageResult;
 import com.example.common.core.result.Result;
-import com.example.study.demo.mybatis.blog.dto.BlogResponse;
-import com.example.study.demo.mybatis.blog.dto.CreateBlogRequest;
-import com.example.study.demo.mybatis.blog.dto.UpdateBlogRequest;
-import com.example.study.demo.mybatis.blog.service.BlogService;
+import com.example.study.demo.blog.dto.BlogResponse;
+import com.example.study.demo.blog.dto.CreateBlogRequest;
+import com.example.study.demo.blog.dto.UpdateBlogRequest;
+import com.example.study.demo.blog.service.BlogService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

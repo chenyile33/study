@@ -1,6 +1,6 @@
-package com.example.study.demo.mybatis.blog.dto;
+package com.example.study.demo.blog.dto;
 
-import com.example.study.demo.mybatis.blog.domain.Blog;
+import com.example.study.demo.blog.domain.Blog;
 
 import java.time.LocalDateTime;
 

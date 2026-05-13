@@ -1,4 +1,4 @@
-package com.example.study.demo.mybatis.blog.dto;
+package com.example.study.demo.blog.dto;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;

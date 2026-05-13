@@ -1,4 +1,4 @@
-package com.example.study.demo.mybatis.blog.service;
+package com.example.study.demo.blog.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -8,11 +8,11 @@ import com.example.common.core.exception.BusinessException;
 import com.example.common.core.page.PageParam;
 import com.example.common.core.page.PageResult;
 import com.example.common.core.util.AssertUtils;
-import com.example.study.demo.mybatis.blog.domain.Blog;
-import com.example.study.demo.mybatis.blog.dto.BlogResponse;
-import com.example.study.demo.mybatis.blog.dto.CreateBlogRequest;
-import com.example.study.demo.mybatis.blog.dto.UpdateBlogRequest;
-import com.example.study.demo.mybatis.blog.mapper.BlogMapper;
+import com.example.study.demo.blog.domain.Blog;
+import com.example.study.demo.blog.dto.BlogResponse;
+import com.example.study.demo.blog.dto.CreateBlogRequest;
+import com.example.study.demo.blog.dto.UpdateBlogRequest;
+import com.example.study.demo.blog.mapper.BlogMapper;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;

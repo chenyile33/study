@@ -1,4 +1,4 @@
-package com.example.study.demo.commoncore.controller;
+package com.example.study.demo.foundation.controller;
 
 import com.example.common.core.error.CommonErrorCode;
 import com.example.common.core.exception.BusinessException;
@@ -24,9 +24,9 @@ import java.util.concurrent.TimeoutException;
  */
 @RestController
 @RequestMapping("/api/common-core")
-public class CommonCoreDemoController {
+public class FoundationDemoController {
 
-    private static final Logger log = LoggerFactory.getLogger(CommonCoreDemoController.class);
+    private static final Logger log = LoggerFactory.getLogger(FoundationDemoController.class);
 
     @Resource(name = "traceTaskExecutor")
     private ThreadPoolTaskExecutor traceTaskExecutor;
