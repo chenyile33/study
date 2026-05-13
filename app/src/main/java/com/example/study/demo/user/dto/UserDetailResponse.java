@@ -1,6 +1,6 @@
 package com.example.study.demo.user.dto;
 
-import com.example.study.demo.user.domain.UserProfile;
+import com.example.study.demo.user.entity.UserProfile;
 
 import java.time.LocalDateTime;
 

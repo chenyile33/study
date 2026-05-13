@@ -1,15 +1,16 @@
 package com.example.study.demo.user.service;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.common.core.error.CommonErrorCode;
 import com.example.common.core.exception.BusinessException;
 import com.example.common.core.page.PageParam;
 import com.example.common.core.page.PageResult;
 import com.example.common.core.util.AssertUtils;
-import com.example.study.demo.user.domain.UserProfile;
 import com.example.study.demo.user.dto.CreateUserRequest;
 import com.example.study.demo.user.dto.UserDetailResponse;
 import com.example.study.demo.user.dto.UserListItemResponse;
-import com.example.study.demo.user.repository.InMemoryUserRepository;
+import com.example.study.demo.user.entity.UserProfile;
+import com.example.study.demo.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,9 +18,9 @@ import java.util.List;
 @Service
 public class UserDemoService {
 
-    private final InMemoryUserRepository userRepository;
+    private final UserRepository userRepository;
 
-    public UserDemoService(InMemoryUserRepository userRepository) {
+    public UserDemoService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
@@ -52,12 +53,12 @@ public class UserDemoService {
 
     public PageResult<UserListItemResponse> pageUsers(PageParam pageParam, String keyword) {
         PageParam normalizedPageParam = pageParam == null ? new PageParam() : pageParam;
-        List<UserProfile> matchedUsers = userRepository.search(keyword);
-        List<UserListItemResponse> records = pageSlice(matchedUsers, normalizedPageParam).stream()
+        Page<UserProfile> userPage = userRepository.page(normalizedPageParam, keyword);
+        List<UserListItemResponse> records = userPage.getRecords().stream()
                 .map(UserListItemResponse::from)
                 .toList();
 
-        return PageResult.of(records, matchedUsers.size(), normalizedPageParam);
+        return PageResult.of(records, userPage.getTotal(), userPage.getCurrent(), userPage.getSize());
     }
 
     private static void validateCreateRequest(CreateUserRequest request) {
@@ -68,14 +69,4 @@ public class UserDemoService {
         AssertUtils.isTrue(request.getEmail().contains("@"), CommonErrorCode.PARAM_ERROR, "email格式错误");
     }
 
-    private static List<UserProfile> pageSlice(List<UserProfile> records, PageParam pageParam) {
-        long offset = pageParam.offset();
-        if (offset >= records.size()) {
-            return List.of();
-        }
-
-        int fromIndex = (int) offset;
-        int toIndex = Math.min(fromIndex + pageParam.limit(), records.size());
-        return records.subList(fromIndex, toIndex);
-    }
 }

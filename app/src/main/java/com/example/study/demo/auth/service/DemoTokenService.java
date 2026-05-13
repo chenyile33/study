@@ -8,12 +8,11 @@ import com.example.study.demo.auth.domain.DemoAccount;
 import com.example.study.demo.auth.domain.StoredToken;
 import com.example.study.demo.auth.dto.LoginRequest;
 import com.example.study.demo.auth.dto.LoginResponse;
+import com.example.study.demo.auth.repository.DatabaseTokenRepository;
 import com.example.study.demo.auth.repository.DemoAccountRepository;
-import com.example.study.demo.auth.repository.InMemoryTokenStore;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
-import java.util.Map;
 
 /**
  * app 对 common 认证接口的具体实现。
@@ -24,11 +23,11 @@ public class DemoTokenService implements TokenAuthenticator {
     private static final Duration TOKEN_TTL = Duration.ofHours(2);
 
     private final DemoAccountRepository accountRepository;
-    private final InMemoryTokenStore tokenStore;
+    private final DatabaseTokenRepository tokenRepository;
 
-    public DemoTokenService(DemoAccountRepository accountRepository, InMemoryTokenStore tokenStore) {
+    public DemoTokenService(DemoAccountRepository accountRepository, DatabaseTokenRepository tokenRepository) {
         this.accountRepository = accountRepository;
-        this.tokenStore = tokenStore;
+        this.tokenRepository = tokenRepository;
     }
 
     public LoginResponse login(LoginRequest request) {
@@ -39,14 +38,7 @@ public class DemoTokenService implements TokenAuthenticator {
                 .filter(candidate -> candidate.matchesPassword(password))
                 .orElseThrow(() -> new AuthException(AuthErrorCode.UNAUTHORIZED, "用户名或密码错误"));
 
-        AuthPrincipal principal = AuthPrincipal.of(
-                account.getId(),
-                account.getUsername(),
-                account.getRoles(),
-                account.getPermissions(),
-                Map.of("source", "auth-demo")
-        );
-        return LoginResponse.from(tokenStore.create(principal, TOKEN_TTL));
+        return LoginResponse.from(tokenRepository.create(account.toPrincipal(), TOKEN_TTL));
     }
 
     /**
@@ -54,12 +46,12 @@ public class DemoTokenService implements TokenAuthenticator {
      */
     @Override
     public AuthPrincipal authenticate(String token) {
-        return tokenStore.findByToken(token)
+        return tokenRepository.findByToken(token)
                 .map(StoredToken::getPrincipal)
                 .orElseThrow(() -> new AuthException(AuthErrorCode.UNAUTHORIZED, "token无效或已过期"));
     }
 
     public void logout(String token) {
-        tokenStore.remove(token);
+        tokenRepository.remove(token);
     }
 }

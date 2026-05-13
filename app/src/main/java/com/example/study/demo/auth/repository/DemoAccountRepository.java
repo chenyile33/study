@@ -1,49 +1,131 @@
 package com.example.study.demo.auth.repository;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.study.demo.auth.domain.DemoAccount;
+import com.example.study.demo.auth.entity.DemoAuthAccount;
+import com.example.study.demo.auth.entity.DemoAuthAccountRole;
+import com.example.study.demo.auth.entity.DemoAuthPermission;
+import com.example.study.demo.auth.entity.DemoAuthRole;
+import com.example.study.demo.auth.entity.DemoAuthRolePermission;
+import com.example.study.demo.auth.mapper.DemoAuthAccountMapper;
+import com.example.study.demo.auth.mapper.DemoAuthAccountRoleMapper;
+import com.example.study.demo.auth.mapper.DemoAuthPermissionMapper;
+import com.example.study.demo.auth.mapper.DemoAuthRoleMapper;
+import com.example.study.demo.auth.mapper.DemoAuthRolePermissionMapper;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**
- * 固定账号仓库，用来学习登录流程，不连接数据库。
+ * 从数据库读取账号、角色和权限，用来组装登录后的认证主体。
  */
 @Repository
 public class DemoAccountRepository {
 
-    /**
-     * Demo 固定账号：这里故意让 admin 和 alice 的角色不同、权限部分重叠，便于验证 403 场景。
-     */
-    private final Map<String, DemoAccount> accounts = Map.of(
-            "admin", new DemoAccount(
-                    "1",
-                    "admin",
-                    "admin123",
-                    List.of("ADMIN", "USER"),
-                    List.of(
-                            "secure:read",
-                            "secure:admin",
-                            "blog:read",
-                            "blog:create",
-                            "blog:update",
-                            "blog:delete"
-                    )
-            ),
-            "alice", new DemoAccount(
-                    "2",
-                    "alice",
-                    "alice123",
-                    List.of("USER"),
-                    List.of("secure:read", "blog:read")
-            )
-    );
+    private final DemoAuthAccountMapper accountMapper;
+    private final DemoAuthRoleMapper roleMapper;
+    private final DemoAuthPermissionMapper permissionMapper;
+    private final DemoAuthAccountRoleMapper accountRoleMapper;
+    private final DemoAuthRolePermissionMapper rolePermissionMapper;
+
+    public DemoAccountRepository(
+            DemoAuthAccountMapper accountMapper,
+            DemoAuthRoleMapper roleMapper,
+            DemoAuthPermissionMapper permissionMapper,
+            DemoAuthAccountRoleMapper accountRoleMapper,
+            DemoAuthRolePermissionMapper rolePermissionMapper
+    ) {
+        this.accountMapper = accountMapper;
+        this.roleMapper = roleMapper;
+        this.permissionMapper = permissionMapper;
+        this.accountRoleMapper = accountRoleMapper;
+        this.rolePermissionMapper = rolePermissionMapper;
+    }
 
     public Optional<DemoAccount> findByUsername(String username) {
         if (username == null || username.isBlank()) {
             return Optional.empty();
         }
-        return Optional.ofNullable(accounts.get(username.trim()));
+        // 登录入口只接受启用账号，停用账号等价于不存在。
+        DemoAuthAccount account = accountMapper.selectOne(new LambdaQueryWrapper<DemoAuthAccount>()
+                .eq(DemoAuthAccount::getUsername, username.trim())
+                .eq(DemoAuthAccount::getEnabled, true));
+        return toDemoAccount(account);
+    }
+
+    public Optional<DemoAccount> findById(Long accountId) {
+        if (accountId == null || accountId <= 0) {
+            return Optional.empty();
+        }
+        DemoAuthAccount account = accountMapper.selectById(accountId);
+        if (account == null || !Boolean.TRUE.equals(account.getEnabled())) {
+            return Optional.empty();
+        }
+        return toDemoAccount(account);
+    }
+
+    private Optional<DemoAccount> toDemoAccount(DemoAuthAccount account) {
+        if (account == null) {
+            return Optional.empty();
+        }
+
+        // 账号表只保存登录信息，认证主体需要临时聚合角色和权限快照。
+        List<DemoAuthRole> roles = loadRoles(account.getId());
+        List<Long> roleIds = roles.stream()
+                .map(DemoAuthRole::getId)
+                .toList();
+        List<String> roleCodes = roles.stream()
+                .map(DemoAuthRole::getRoleCode)
+                .toList();
+        List<String> permissionCodes = loadPermissions(roleIds);
+
+        return Optional.of(new DemoAccount(
+                String.valueOf(account.getId()),
+                account.getUsername(),
+                account.getPassword(),
+                roleCodes,
+                permissionCodes
+        ));
+    }
+
+    private List<DemoAuthRole> loadRoles(Long accountId) {
+        // 先查关联表，再回角色表取 code，保持表结构接近真实 RBAC。
+        List<Long> roleIds = accountRoleMapper.selectList(new LambdaQueryWrapper<DemoAuthAccountRole>()
+                        .eq(DemoAuthAccountRole::getAccountId, accountId))
+                .stream()
+                .map(DemoAuthAccountRole::getRoleId)
+                .distinct()
+                .toList();
+        if (roleIds.isEmpty()) {
+            return List.of();
+        }
+        return roleMapper.selectList(new LambdaQueryWrapper<DemoAuthRole>()
+                .in(DemoAuthRole::getId, roleIds)
+                .orderByAsc(DemoAuthRole::getId));
+    }
+
+    private List<String> loadPermissions(List<Long> roleIds) {
+        if (roleIds.isEmpty()) {
+            return List.of();
+        }
+
+        // 权限来自角色，不直接绑在账号上，方便后续演示角色授权变更。
+        List<Long> permissionIds = rolePermissionMapper.selectList(new LambdaQueryWrapper<DemoAuthRolePermission>()
+                        .in(DemoAuthRolePermission::getRoleId, roleIds))
+                .stream()
+                .map(DemoAuthRolePermission::getPermissionId)
+                .distinct()
+                .toList();
+        if (permissionIds.isEmpty()) {
+            return List.of();
+        }
+
+        return permissionMapper.selectList(new LambdaQueryWrapper<DemoAuthPermission>()
+                        .in(DemoAuthPermission::getId, permissionIds)
+                        .orderByAsc(DemoAuthPermission::getId))
+                .stream()
+                .map(DemoAuthPermission::getPermissionCode)
+                .toList();
     }
 }

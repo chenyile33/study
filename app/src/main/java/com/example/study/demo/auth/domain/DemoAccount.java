@@ -1,11 +1,13 @@
 package com.example.study.demo.auth.domain;
 
+import com.example.common.core.auth.AuthPrincipal;
 import lombok.Getter;
 
 import java.util.List;
+import java.util.Map;
 
 /**
- * 认证 Demo 的固定账号，只服务当前 app 学习场景。
+ * 认证 Demo 的账号聚合，包含登录校验需要的账号信息和权限快照。
  */
 @Getter
 public class DemoAccount {
@@ -45,6 +47,10 @@ public class DemoAccount {
 
     public boolean matchesPassword(String rawPassword) {
         return password.equals(rawPassword);
+    }
+
+    public AuthPrincipal toPrincipal() {
+        return AuthPrincipal.of(id, username, roles, permissions, Map.of("source", "auth-demo"));
     }
 
 }
