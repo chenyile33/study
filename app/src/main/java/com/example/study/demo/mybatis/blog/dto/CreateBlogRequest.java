@@ -43,6 +43,4 @@ public class CreateBlogRequest {
     private Integer views;
 
     private Long typeId;
-
-    private Long userId;
 }

@@ -22,14 +22,21 @@ public class DemoAccountRepository {
                     "admin",
                     "admin123",
                     List.of("ADMIN", "USER"),
-                    List.of("secure:read", "secure:admin")
+                    List.of(
+                            "secure:read",
+                            "secure:admin",
+                            "blog:read",
+                            "blog:create",
+                            "blog:update",
+                            "blog:delete"
+                    )
             ),
             "alice", new DemoAccount(
                     "2",
                     "alice",
                     "alice123",
                     List.of("USER"),
-                    List.of("secure:read")
+                    List.of("secure:read", "blog:read")
             )
     );
 

@@ -35,6 +35,4 @@ public class UpdateBlogRequest {
     private Integer views;
 
     private Long typeId;
-
-    private Long userId;
 }

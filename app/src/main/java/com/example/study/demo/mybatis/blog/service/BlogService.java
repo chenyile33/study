@@ -2,6 +2,7 @@ package com.example.study.demo.mybatis.blog.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.example.common.core.auth.AuthContext;
 import com.example.common.core.error.CommonErrorCode;
 import com.example.common.core.exception.BusinessException;
 import com.example.common.core.page.PageParam;
@@ -31,6 +32,8 @@ public class BlogService {
 
         Blog blog = new Blog();
         applyCreateFields(blog, request);
+        // 创建人来自认证上下文，不信任客户端自己传入的 userId。
+        blog.setUserId(currentUserId());
 
         LocalDateTime now = LocalDateTime.now();
         blog.setCreateTime(now);
@@ -111,7 +114,6 @@ public class BlogService {
         blog.setRecommend(request.getRecommend());
         blog.setShareStatement(request.getShareStatement());
         blog.setTypeId(request.getTypeId());
-        blog.setUserId(request.getUserId());
     }
 
     private void applyUpdateFields(Blog blog, UpdateBlogRequest request) {
@@ -152,9 +154,6 @@ public class BlogService {
         if (request.getTypeId() != null) {
             blog.setTypeId(request.getTypeId());
         }
-        if (request.getUserId() != null) {
-            blog.setUserId(request.getUserId());
-        }
     }
 
     private void validateId(Long id) {
@@ -164,5 +163,14 @@ public class BlogService {
 
     private String normalize(String value) {
         return value == null ? "" : value.trim();
+    }
+
+    private Long currentUserId() {
+        String principalId = AuthContext.requirePrincipal().getPrincipalId();
+        try {
+            return Long.valueOf(principalId);
+        } catch (NumberFormatException exception) {
+            throw new BusinessException(CommonErrorCode.PARAM_ERROR, "当前登录用户ID格式不正确");
+        }
     }
 }

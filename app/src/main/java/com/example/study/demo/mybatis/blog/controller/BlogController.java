@@ -1,5 +1,6 @@
 package com.example.study.demo.mybatis.blog.controller;
 
+import com.example.common.core.auth.authorization.RequirePermissions;
 import com.example.common.core.page.PageParam;
 import com.example.common.core.page.PageResult;
 import com.example.common.core.result.Result;
@@ -33,18 +34,21 @@ public class BlogController {
         this.blogService = blogService;
     }
 
+    @RequirePermissions("blog:create")
     @PostMapping
     public Result<BlogResponse> createBlog(@Valid @RequestBody(required = false) CreateBlogRequest request) {
         log.info("创建博客，title={}", request == null ? null : request.getTitle());
         return Result.success(blogService.createBlog(request));
     }
 
+    @RequirePermissions("blog:read")
     @GetMapping("/{id}")
     public Result<BlogResponse> getBlog(@PathVariable Long id) {
         log.info("查询博客详情，id={}", id);
         return Result.success(blogService.getBlog(id));
     }
 
+    @RequirePermissions("blog:read")
     @GetMapping
     public Result<PageResult<BlogResponse>> pageBlogs(
             @ModelAttribute PageParam pageParam,
@@ -55,6 +59,7 @@ public class BlogController {
         return Result.success(blogService.pageBlogs(pageParam, keyword));
     }
 
+    @RequirePermissions("blog:update")
     @PutMapping("/{id}")
     public Result<BlogResponse> updateBlog(
             @PathVariable Long id,
@@ -64,6 +69,7 @@ public class BlogController {
         return Result.success(blogService.updateBlog(id, request));
     }
 
+    @RequirePermissions("blog:delete")
     @DeleteMapping("/{id}")
     public Result<Void> deleteBlog(@PathVariable Long id) {
         log.info("删除博客，id={}", id);
