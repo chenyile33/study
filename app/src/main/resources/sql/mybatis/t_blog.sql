@@ -1,5 +1,5 @@
 -- MyBatis blog Demo 初始化脚本。
--- 运行应用前先执行本目录下的 t_auth.sql、t_blog.sql、t_user.sql。
+-- 运行应用前先执行本目录下的 t_auth.sql、t_blog.sql。
 
 CREATE DATABASE IF NOT EXISTS `study_demo`
     DEFAULT CHARACTER SET utf8mb4

@@ -18,6 +18,21 @@ CREATE TABLE IF NOT EXISTS `demo_auth_account` (
   UNIQUE KEY `uk_demo_auth_account_username` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+-- 账号资料表，登录凭证和展示资料分开保存。
+CREATE TABLE IF NOT EXISTS `demo_auth_profile` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `account_id` bigint NOT NULL,
+  `nickname` varchar(100) NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_demo_auth_profile_account_id` (`account_id`),
+  UNIQUE KEY `uk_demo_auth_profile_email` (`email`),
+  CONSTRAINT `fk_demo_auth_profile_account`
+    FOREIGN KEY (`account_id`) REFERENCES `demo_auth_account` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 -- 角色表达一类身份分组，例如 ADMIN、USER。
 CREATE TABLE IF NOT EXISTS `demo_auth_role` (
   `id` bigint NOT NULL AUTO_INCREMENT,
@@ -95,10 +110,18 @@ INSERT INTO `demo_auth_permission` (`id`, `permission_code`, `permission_name`) 
     (3, 'blog:read', '读取博客'),
     (4, 'blog:create', '创建博客'),
     (5, 'blog:update', '更新博客'),
-    (6, 'blog:delete', '删除博客')
+    (6, 'blog:delete', '删除博客'),
+    (7, 'auth:profile:read', '分页查询认证账号资料')
 ON DUPLICATE KEY UPDATE
     `permission_code` = VALUES(`permission_code`),
     `permission_name` = VALUES(`permission_name`);
+
+INSERT INTO `demo_auth_profile` (`account_id`, `nickname`, `email`) VALUES
+    (1, 'Admin', 'admin@example.com'),
+    (2, 'Alice', 'alice@example.com')
+ON DUPLICATE KEY UPDATE
+    `nickname` = VALUES(`nickname`),
+    `email` = VALUES(`email`);
 
 INSERT IGNORE INTO `demo_auth_account_role` (`account_id`, `role_id`) VALUES
     (1, 1),
@@ -112,5 +135,6 @@ INSERT IGNORE INTO `demo_auth_role_permission` (`role_id`, `permission_id`) VALU
     (1, 4),
     (1, 5),
     (1, 6),
+    (1, 7),
     (2, 1),
     (2, 3);

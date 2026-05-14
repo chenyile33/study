@@ -15,8 +15,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration(proxyBeanMethods = false)
 @MapperScan({
         "com.example.study.demo.blog.mapper",
-        "com.example.study.demo.auth.mapper",
-        "com.example.study.demo.user.mapper"
+        "com.example.study.demo.auth.mapper"
 })
 public class MybatisPlusConfig {
 

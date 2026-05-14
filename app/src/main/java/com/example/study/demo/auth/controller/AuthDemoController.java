@@ -6,6 +6,9 @@ import com.example.common.web.auth.BearerTokenResolver;
 import com.example.study.demo.auth.dto.AuthPrincipalResponse;
 import com.example.study.demo.auth.dto.LoginRequest;
 import com.example.study.demo.auth.dto.LoginResponse;
+import com.example.study.demo.auth.dto.RegisterRequest;
+import com.example.study.demo.auth.dto.RegisterResponse;
+import com.example.study.demo.auth.service.DemoRegistrationService;
 import com.example.study.demo.auth.service.DemoTokenService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -23,11 +26,23 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthDemoController {
 
     private final DemoTokenService tokenService;
+    private final DemoRegistrationService registrationService;
     private final BearerTokenResolver tokenResolver;
 
-    public AuthDemoController(DemoTokenService tokenService, BearerTokenResolver tokenResolver) {
+    public AuthDemoController(DemoTokenService tokenService,
+                              DemoRegistrationService registrationService,
+                              BearerTokenResolver tokenResolver) {
         this.tokenService = tokenService;
+        this.registrationService = registrationService;
         this.tokenResolver = tokenResolver;
+    }
+
+    /**
+     * 注册接口在 permit-paths 中，允许匿名创建学习账号。
+     */
+    @PostMapping("/register")
+    public Result<RegisterResponse> register(@Valid @RequestBody RegisterRequest request) {
+        return Result.success(registrationService.register(request));
     }
 
     /**
