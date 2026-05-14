@@ -45,4 +45,40 @@ class AuthContextTest {
 
         assertFalse(AuthContext.isAuthenticated());
     }
+
+    @Test
+    void openAnonymousShouldClearPrincipalTemporarilyAndRestorePreviousPrincipal() {
+        AuthPrincipal alice = AuthPrincipal.of("1", "alice", List.of("USER"));
+
+        try (AuthScope ignored = AuthContext.open(alice)) {
+            assertTrue(AuthContext.isAuthenticated());
+
+            try (AuthScope anonymous = AuthContext.openAnonymous()) {
+                assertFalse(AuthContext.isAuthenticated());
+                assertThrows(AuthException.class, AuthContext::requirePrincipal);
+            }
+
+            assertEquals("alice", AuthContext.requirePrincipal().getPrincipalName());
+        }
+
+        assertFalse(AuthContext.isAuthenticated());
+    }
+
+    @Test
+    void hasAnyRoleAndPermissionShouldReturnFalseForEmptyRequirements() {
+        AuthPrincipal alice = AuthPrincipal.of(
+                "1",
+                "alice",
+                List.of("USER"),
+                List.of("secure:read"),
+                java.util.Map.of()
+        );
+
+        try (AuthScope ignored = AuthContext.open(alice)) {
+            assertFalse(AuthContext.hasAnyRole(null));
+            assertFalse(AuthContext.hasAnyRole(List.of()));
+            assertFalse(AuthContext.hasAnyPermission(null));
+            assertFalse(AuthContext.hasAnyPermission(List.of()));
+        }
+    }
 }

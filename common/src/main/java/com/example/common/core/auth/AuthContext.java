@@ -47,6 +47,9 @@ public final class AuthContext {
      * 判断当前认证主体是否拥有任意一个指定角色；未登录时返回 false。
      */
     public static boolean hasAnyRole(Collection<String> roles) {
+        if (roles == null || roles.isEmpty()) {
+            return false;
+        }
         return getPrincipal()
                 .map(principal -> principal.hasAnyRole(roles))
                 .orElse(false);
@@ -65,6 +68,9 @@ public final class AuthContext {
      * 判断当前认证主体是否拥有任意一个指定权限码；未登录时返回 false。
      */
     public static boolean hasAnyPermission(Collection<String> permissions) {
+        if (permissions == null || permissions.isEmpty()) {
+            return false;
+        }
         return getPrincipal()
                 .map(principal -> principal.hasAnyPermission(permissions))
                 .orElse(false);
@@ -78,14 +84,22 @@ public final class AuthContext {
     }
 
     /**
-     * 打开一个认证作用域，适合在过滤器、拦截器、消费者等入口中配合 try-with-resources 使用。
+     * 打开一个认证主体作用域，适合在过滤器、拦截器、消费者等入口中配合 try-with-resources 使用。
      *
-     * <p>作用域关闭时会恢复进入前的认证主体。</p>
+     * <p>作用域关闭时会恢复进入前的认证主体。传入 null 时表示临时清空认证主体；
+     * 业务代码优先使用语义更清楚的 openAnonymous()。</p>
      */
     public static AuthScope open(AuthPrincipal principal) {
         AuthPrincipal previousPrincipal = PRINCIPAL_HOLDER.get();
         setPrincipal(principal);
         return new AuthScope(previousPrincipal);
+    }
+
+    /**
+     * 打开匿名作用域，请求期间没有认证主体，关闭时恢复进入前的认证主体。
+     */
+    public static AuthScope openAnonymous() {
+        return open(null);
     }
 
     /**

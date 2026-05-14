@@ -66,7 +66,7 @@ public class AuthFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
         if (!properties.isEnabled() || isPermitPath(request)) {
             // 认证关闭或白名单请求不写入主体，并清理进入过滤器前可能残留的上下文。
-            try (AuthScope ignored = AuthContext.open(null)) {
+            try (AuthScope ignored = AuthContext.openAnonymous()) {
                 filterChain.doFilter(request, response);
             }
             return;
