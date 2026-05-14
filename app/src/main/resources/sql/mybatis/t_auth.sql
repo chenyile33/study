@@ -73,10 +73,10 @@ CREATE TABLE IF NOT EXISTS `demo_auth_token` (
     FOREIGN KEY (`account_id`) REFERENCES `demo_auth_account` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- 明文密码只服务学习 Demo，真实项目应保存加盐哈希后的密码。
+-- password 保存 BCrypt 哈希值，不保存明文密码。
 INSERT INTO `demo_auth_account` (`id`, `username`, `password`, `enabled`) VALUES
-    (1, 'admin', 'admin123', 1),
-    (2, 'alice', 'alice123', 1)
+    (1, 'admin', '$2a$10$vIiYbRspd.Y0SWzlxFWJiOoRXLyoxEl7e9GZLn7dUDJREa6TgnwdW', 1),
+    (2, 'alice', '$2a$10$5ExF4GmmVCAkAtPz9QDj9eQABioPn6GUiWO8ecI.AmzAgmUMo3aSa', 1)
 ON DUPLICATE KEY UPDATE
     `username` = VALUES(`username`),
     `password` = VALUES(`password`),

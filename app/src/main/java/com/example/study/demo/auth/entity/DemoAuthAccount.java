@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 /**
  * 认证账号表实体。
  *
- * <p>当前 Demo 为了聚焦认证流程，密码仍是明文；真实项目应改为加盐哈希。</p>
+ * <p>password 字段保存 BCrypt 哈希值，不保存明文密码。</p>
  */
 @Data
 @TableName("demo_auth_account")
@@ -23,9 +23,6 @@ public class DemoAuthAccount {
     @TableField("username")
     private String username;
 
-    /**
-     * 学习 Demo 中直接保存明文密码，方便观察登录校验链路。
-     */
     @TableField("password")
     private String password;
 

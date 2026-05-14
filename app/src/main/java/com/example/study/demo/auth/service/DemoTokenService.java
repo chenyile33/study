@@ -8,6 +8,7 @@ import com.example.study.demo.auth.domain.DemoAccount;
 import com.example.study.demo.auth.domain.StoredToken;
 import com.example.study.demo.auth.dto.LoginRequest;
 import com.example.study.demo.auth.dto.LoginResponse;
+import com.example.study.demo.auth.password.PasswordHasher;
 import com.example.study.demo.auth.repository.DatabaseTokenRepository;
 import com.example.study.demo.auth.repository.DemoAccountRepository;
 import org.springframework.stereotype.Service;
@@ -24,10 +25,14 @@ public class DemoTokenService implements TokenAuthenticator {
 
     private final DemoAccountRepository accountRepository;
     private final DatabaseTokenRepository tokenRepository;
+    private final PasswordHasher passwordHasher;
 
-    public DemoTokenService(DemoAccountRepository accountRepository, DatabaseTokenRepository tokenRepository) {
+    public DemoTokenService(DemoAccountRepository accountRepository,
+                            DatabaseTokenRepository tokenRepository,
+                            PasswordHasher passwordHasher) {
         this.accountRepository = accountRepository;
         this.tokenRepository = tokenRepository;
+        this.passwordHasher = passwordHasher;
     }
 
     public LoginResponse login(LoginRequest request) {
@@ -35,7 +40,7 @@ public class DemoTokenService implements TokenAuthenticator {
         String password = request.getPassword();
 
         DemoAccount account = accountRepository.findByUsername(username)
-                .filter(candidate -> candidate.matchesPassword(password))
+                .filter(candidate -> passwordHasher.matches(password, candidate.getPasswordHash()))
                 .orElseThrow(() -> new AuthException(AuthErrorCode.UNAUTHORIZED, "用户名或密码错误"));
 
         return LoginResponse.from(tokenRepository.create(account.toPrincipal(), TOKEN_TTL));

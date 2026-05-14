@@ -23,9 +23,9 @@ public class DemoAccount {
     private final String username;
 
     /**
-     * 明文密码仅用于学习认证流程，真实项目不能这样保存密码。
+     * BCrypt 哈希后的密码，不保存明文密码。
      */
-    private final String password;
+    private final String passwordHash;
 
     /**
      * 登录成功后写入认证主体的角色快照。
@@ -37,16 +37,12 @@ public class DemoAccount {
      */
     private final List<String> permissions;
 
-    public DemoAccount(String id, String username, String password, List<String> roles, List<String> permissions) {
+    public DemoAccount(String id, String username, String passwordHash, List<String> roles, List<String> permissions) {
         this.id = id;
         this.username = username;
-        this.password = password;
+        this.passwordHash = passwordHash;
         this.roles = List.copyOf(roles);
         this.permissions = List.copyOf(permissions);
-    }
-
-    public boolean matchesPassword(String rawPassword) {
-        return password.equals(rawPassword);
     }
 
     public AuthPrincipal toPrincipal() {
