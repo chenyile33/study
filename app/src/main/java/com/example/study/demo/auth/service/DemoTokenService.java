@@ -4,6 +4,8 @@ import com.example.common.core.auth.AuthErrorCode;
 import com.example.common.core.auth.AuthException;
 import com.example.common.core.auth.AuthPrincipal;
 import com.example.common.core.auth.TokenAuthenticator;
+import com.example.common.core.error.CommonErrorCode;
+import com.example.common.core.util.AssertUtils;
 import com.example.study.demo.auth.domain.DemoAccount;
 import com.example.study.demo.auth.domain.StoredToken;
 import com.example.study.demo.auth.dto.LoginRequest;
@@ -36,6 +38,7 @@ public class DemoTokenService implements TokenAuthenticator {
     }
 
     public LoginResponse login(LoginRequest request) {
+        validateLoginRequest(request);
         String username = request.getUsername().trim();
         String password = request.getPassword();
 
@@ -58,5 +61,11 @@ public class DemoTokenService implements TokenAuthenticator {
 
     public void logout(String token) {
         tokenRepository.remove(token);
+    }
+
+    private static void validateLoginRequest(LoginRequest request) {
+        AssertUtils.notNull(request, CommonErrorCode.PARAM_ERROR, "请求体不能为空");
+        AssertUtils.hasText(request.getUsername(), CommonErrorCode.PARAM_ERROR, "username不能为空");
+        AssertUtils.hasText(request.getPassword(), CommonErrorCode.PARAM_ERROR, "password不能为空");
     }
 }

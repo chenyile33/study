@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -28,6 +29,8 @@ public class DatabaseTokenRepository {
     }
 
     public StoredToken create(AuthPrincipal principal, Duration ttl) {
+        Objects.requireNonNull(principal, "principal must not be null");
+        Objects.requireNonNull(ttl, "ttl must not be null");
         // opaque token 只保存随机串；权限信息不固化进 token，方便下次请求读取最新权限。
         String token = UUID.randomUUID().toString().replace("-", "");
         LocalDateTime expiresAt = LocalDateTime.now().plus(ttl);

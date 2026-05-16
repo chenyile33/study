@@ -27,7 +27,7 @@ public class BlogService {
     }
 
     public BlogResponse createBlog(CreateBlogRequest request) {
-        AssertUtils.notNull(request, CommonErrorCode.PARAM_ERROR, "请求体不能为空");
+        validateCreateRequest(request);
 
         Blog blog = new Blog();
         applyCreateFields(blog, request);
@@ -84,6 +84,16 @@ public class BlogService {
             throw new BusinessException(CommonErrorCode.PARAM_ERROR, "博客不存在");
         }
         return blog;
+    }
+
+    private static void validateCreateRequest(CreateBlogRequest request) {
+        AssertUtils.notNull(request, CommonErrorCode.PARAM_ERROR, "请求体不能为空");
+        AssertUtils.hasText(request.getTitle(), CommonErrorCode.PARAM_ERROR, "title不能为空");
+        AssertUtils.notNull(request.getAppreciation(), CommonErrorCode.PARAM_ERROR, "appreciation不能为空");
+        AssertUtils.notNull(request.getCommentabled(), CommonErrorCode.PARAM_ERROR, "commentabled不能为空");
+        AssertUtils.notNull(request.getPublished(), CommonErrorCode.PARAM_ERROR, "published不能为空");
+        AssertUtils.notNull(request.getRecommend(), CommonErrorCode.PARAM_ERROR, "recommend不能为空");
+        AssertUtils.notNull(request.getShareStatement(), CommonErrorCode.PARAM_ERROR, "shareStatement不能为空");
     }
 
     private void applyCreateFields(Blog blog, CreateBlogRequest request) {
