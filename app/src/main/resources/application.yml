@@ -23,4 +23,11 @@ common:
     enabled: true
     permit-paths:
       - /api/auth/login
+      - /api/auth/jwt/login
       - /api/auth/register
+
+demo:
+  auth:
+    jwt:
+      secret: study-demo-jwt-secret-change-me-at-least-32-bytes
+      ttl-seconds: 7200

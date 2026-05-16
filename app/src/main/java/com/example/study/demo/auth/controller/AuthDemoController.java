@@ -53,13 +53,21 @@ public class AuthDemoController {
         return Result.success(tokenService.login(request));
     }
 
+    /**
+     * JWT 登录接口同样使用 Bearer 头传回，但 token 本身携带主体和权限快照。
+     */
+    @PostMapping("/jwt/login")
+    public Result<LoginResponse> jwtLogin(@Valid @RequestBody LoginRequest request) {
+        return Result.success(tokenService.loginWithJwt(request));
+    }
+
     @GetMapping("/me")
     public Result<AuthPrincipalResponse> me() {
         return Result.success(AuthPrincipalResponse.from(AuthContext.requirePrincipal()));
     }
 
     /**
-     * logout 删除服务端 token 状态，所以旧 token 会立即失效。
+     * logout 会删除 opaque token 的服务端状态；JWT 本身无状态，需要黑名单机制才能主动失效。
      */
     @PostMapping("/logout")
     public Result<Void> logout(HttpServletRequest request) {

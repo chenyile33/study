@@ -9,6 +9,8 @@ import com.example.study.demo.auth.domain.DemoAccount;
 import com.example.study.demo.auth.domain.StoredToken;
 import com.example.study.demo.auth.dto.LoginRequest;
 import com.example.study.demo.auth.dto.LoginResponse;
+import com.example.study.demo.auth.jwt.JwtToken;
+import com.example.study.demo.auth.jwt.JwtTokenService;
 import com.example.study.demo.auth.password.PasswordHasher;
 import com.example.study.demo.auth.repository.DatabaseTokenRepository;
 import com.example.study.demo.auth.repository.DemoAccountRepository;
@@ -36,10 +38,12 @@ class DemoTokenServiceTest {
 
     private final DemoAccountRepository accountRepository = mock(DemoAccountRepository.class);
     private final DatabaseTokenRepository tokenRepository = mock(DatabaseTokenRepository.class);
+    private final JwtTokenService jwtTokenService = mock(JwtTokenService.class);
     private final PasswordHasher passwordHasher = mock(PasswordHasher.class);
     private final DemoTokenService tokenService = new DemoTokenService(
             accountRepository,
             tokenRepository,
+            jwtTokenService,
             passwordHasher
     );
 
@@ -93,6 +97,36 @@ class DemoTokenServiceTest {
                 argThat(value -> value != null && "2".equals(value.getPrincipalId())),
                 eq(TOKEN_TTL)
         );
+    }
+
+    @Test
+    void loginWithJwtShouldCreateJwtTokenWhenPasswordMatches() {
+        LoginRequest request = loginRequest("alice", "alice123");
+        DemoAccount account = demoAccount();
+        AuthPrincipal principal = account.toPrincipal();
+        JwtToken jwtToken = new JwtToken("jwt-token", principal, LocalDateTime.now().plus(TOKEN_TTL));
+        when(accountRepository.findByUsername("alice")).thenReturn(Optional.of(account));
+        when(passwordHasher.matches("alice123", account.getPasswordHash())).thenReturn(true);
+        when(jwtTokenService.create(any(AuthPrincipal.class))).thenReturn(jwtToken);
+
+        LoginResponse response = tokenService.loginWithJwt(request);
+
+        assertEquals("jwt-token", response.getAccessToken());
+        verify(jwtTokenService).create(argThat(value -> value != null && "2".equals(value.getPrincipalId())));
+        verify(tokenRepository, never()).create(any(AuthPrincipal.class), any(Duration.class));
+    }
+
+    @Test
+    void authenticateShouldUseJwtServiceWhenTokenLooksLikeJwt() {
+        AuthPrincipal principal = AuthPrincipal.of("2", "alice");
+        when(jwtTokenService.supports("header.payload.signature")).thenReturn(true);
+        when(jwtTokenService.authenticate("header.payload.signature")).thenReturn(principal);
+
+        AuthPrincipal actual = tokenService.authenticate("header.payload.signature");
+
+        assertEquals("2", actual.getPrincipalId());
+        verify(jwtTokenService).authenticate("header.payload.signature");
+        verifyNoInteractions(tokenRepository);
     }
 
     private static LoginRequest loginRequest(String username, String password) {

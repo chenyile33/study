@@ -1,5 +1,6 @@
 package com.example.study.demo.auth.dto;
 
+import com.example.common.core.auth.AuthPrincipal;
 import com.example.study.demo.auth.domain.StoredToken;
 import lombok.Getter;
 
@@ -30,6 +31,15 @@ public class LoginResponse {
                 storedToken.getToken(),
                 storedToken.getExpiresAt(),
                 AuthPrincipalResponse.from(storedToken.getPrincipal())
+        );
+    }
+
+    public static LoginResponse bearer(String accessToken, LocalDateTime expiresAt, AuthPrincipal principal) {
+        return new LoginResponse(
+                "Bearer",
+                accessToken,
+                expiresAt,
+                AuthPrincipalResponse.from(principal)
         );
     }
 
