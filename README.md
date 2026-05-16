@@ -1,47 +1,44 @@
 # study
-2026, AI vibe coding
 
-## common 模块设计规范
+`study` 是一个 Java 后端学习项目，当前目标是沉淀一套可复用的 `common` 通用能力，再通过 `app` 模块提供可运行的 Demo 来验证这些能力。
 
-`common` 模块用于沉淀可复用的通用能力，可以被当前项目和其他项目引入使用。设计目标是：能力可以逐步丰富，但引入 `common` 本身不应该改变项目原有行为。
+这个项目不打算围绕某个固定业务系统展开。`foundation`、`auth`、`blog` 等包只是学习切片，用来验证通用能力在真实 Web 应用里的接入方式。
 
-### 包分层
+## 项目目标
 
-`common` 只提前固定最基础的分层，不因为未来可能学习某项技术就提前写死目录或能力承诺。
+- 把统一返回、错误码、异常、分页、trace、认证、授权等基础能力沉淀到 `common`。
+- 让 `common` 更像可复用公共库：边界清晰、默认保守、按需启用。
+- 让 `app` 更像示例工程：用于运行、调试和展示 common 能力，不承载复杂业务产品目标。
+- 后续围绕通用后端主题继续学习和扩展，例如 Spring Security、JWT 对照、缓存、锁、消息等。
 
-```text
-com.example.common
-├─ core              # 纯 Java 底座能力，不依赖 Spring，默认安全可用
-├─ web               # Web 通用能力，例如全局异常处理、拦截器
-├─ autoconfigure     # Spring Boot 自动配置入口
-└─ feature           # 按实际学习内容新增的能力包，不使用 feature 作为真实包名
-```
-
-后续如果学习缓存、锁、消息、搜索、文件、加密、ID 生成、设计模式等内容，再按实际能力新增清晰的包名。没有实现的能力不要提前创建包，也不要写成固定规划。
-
-如果某些代码只是对 Spring 机制的适配，例如线程池 `TaskDecorator`，可以放在 `common.spring.xxx`。这类代码必须保持为普通类，不能加 `@Component` 或自动配置，避免项目只引入 `common` 就被动生效。
-
-### 依赖方向
-
-公共能力之间必须保持清晰依赖方向：
+## 当前结构
 
 ```text
-web / 其他能力包 -> core
-autoconfigure -> web / 其他能力包
+study
+├─ common   # 可复用通用能力
+└─ app      # 启动应用和学习 Demo
 ```
 
-禁止让能力包互相强依赖。例如某个存储能力不应该依赖 `web`，`core` 也不应该依赖 Spring Web 或任何具体中间件。
+## common 模块
 
-### 启用原则
+`common` 是这个项目的核心沉淀位置。
 
-- `core` 只提供基础类型、上下文、工具和抽象，默认可以直接使用。
-- 会注册 Spring Bean、拦截请求、修改序列化、消费消息、连接外部组件的能力，默认必须关闭。
-- 推荐通过 `@EnableCommonXxx` 或 `common.xxx.enabled=true` 显式启用能力。
-- 新项目可以选择一键启用推荐能力，但必须允许手动排除具体功能。
-- 公共配置优先使用 `@ConditionalOnClass`、`@ConditionalOnProperty`、`@ConditionalOnMissingBean`，避免抢占业务项目自己的实现。
+- `common.core`：纯 Java 基础能力，包括统一返回、错误码、业务异常、分页、trace 上下文、认证主体和授权抽象。
+- `common.web`：Web 适配能力，包括全局异常处理、trace filter、认证 filter、授权 interceptor。
+- `common.spring.trace`：Spring 线程池 trace 传递适配。
 
-### trace 与日志
+设计上，`common.core` 不绑定具体业务模型；会拦截请求或注册 Spring Bean 的能力需要由应用显式启用，避免只引入依赖就改变使用方行为。
 
-`traceId` 属于跨模块上下文能力，底座放在 `core.trace`。Web 请求、后台任务、消息消费等只是不同的 trace 来源。
+## app 模块
 
-能力包如果需要记录 trace 信息，只依赖 `TraceContext`，不依赖具体来源。例如某个能力包可以读取当前 `TraceContext`，但不能依赖 Web 拦截器。
+`app` 用来验证 `common` 的实际使用方式。
+
+- `demo.foundation`：验证统一返回、参数断言、业务异常、trace 和异步 trace 传递。
+- `demo.auth`：验证注册、登录、opaque token、JWT、角色、权限和账号资料查询。
+- `demo.blog`：验证 MyBatis-Plus CRUD、分页模型和权限码控制。
+
+这些 Demo 目前服务于学习和验证，不代表项目要发展成博客系统、权限管理后台或其他固定业务系统。
+
+## 当前方向
+
+这个仓库后续会优先沿着“通用能力库 + 可运行示例”的方向演进。新增能力时先判断它属于 `common` 的通用抽象，还是 `app` 的具体 Demo；能复用的能力沉淀到 `common`，具体业务和实验代码留在 `app`。

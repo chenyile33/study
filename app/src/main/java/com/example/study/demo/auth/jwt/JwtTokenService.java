@@ -203,7 +203,7 @@ public class JwtTokenService {
     }
 
     private void verifyExpiresAt(Map<String, Object> payload) {
-        long expiresAt = requiredNumber(payload.get("exp"), "JWT缺少过期时间");
+        long expiresAt = requiredNumber(payload.get("exp"));
         if (Instant.now(clock).getEpochSecond() >= expiresAt) {
             throw new AuthException(AuthErrorCode.UNAUTHORIZED, "JWT已过期");
         }
@@ -233,11 +233,11 @@ public class JwtTokenService {
         return value == null ? "" : String.valueOf(value).trim();
     }
 
-    private static long requiredNumber(Object value, String message) {
+    private static long requiredNumber(Object value) {
         if (value instanceof Number) {
             return ((Number) value).longValue();
         }
-        throw new AuthException(AuthErrorCode.UNAUTHORIZED, message);
+        throw new AuthException(AuthErrorCode.UNAUTHORIZED, "JWT缺少过期时间");
     }
 
     private static List<String> stringList(Object value) {
@@ -258,11 +258,10 @@ public class JwtTokenService {
 
     private static Map<String, String> stringMap(Object value) {
         // attributes 是 demo 自定义的字符串扩展信息，读取时统一转成 Map<String, String>。
-        if (!(value instanceof Map<?, ?>)) {
+        if (!(value instanceof Map<?, ?> values)) {
             return Collections.emptyMap();
         }
 
-        Map<?, ?> values = (Map<?, ?>) value;
         Map<String, String> result = new LinkedHashMap<>();
         for (Map.Entry<?, ?> entry : values.entrySet()) {
             String key = optionalText(entry.getKey());
