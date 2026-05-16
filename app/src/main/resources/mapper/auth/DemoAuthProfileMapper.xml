@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.study.demo.auth.mapper.DemoAuthProfileMapper">
+
+    <resultMap id="AuthProfileRecordMap" type="com.example.study.demo.auth.domain.AuthProfileRecord">
+        <id property="accountId" column="account_id"/>
+        <result property="username" column="username"/>
+        <result property="nickname" column="nickname"/>
+        <result property="email" column="email"/>
+        <result property="enabled" column="enabled"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <select id="selectProfilePage" resultMap="AuthProfileRecordMap">
+        SELECT a.id AS account_id,
+               a.username,
+               p.nickname,
+               p.email,
+               a.enabled,
+               p.create_time
+        FROM demo_auth_profile p
+        INNER JOIN demo_auth_account a ON a.id = p.account_id
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (
+                    a.username LIKE CONCAT('%', #{keyword}, '%')
+                    OR p.nickname LIKE CONCAT('%', #{keyword}, '%')
+                    OR p.email LIKE CONCAT('%', #{keyword}, '%')
+                )
+            </if>
+        </where>
+        ORDER BY p.id DESC
+    </select>
+</mapper>

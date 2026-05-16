@@ -1,6 +1,5 @@
 package com.example.study.demo.blog.service;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.common.core.auth.AuthContext;
 import com.example.common.core.error.CommonErrorCode;
@@ -51,7 +50,8 @@ public class BlogService {
     public PageResult<BlogResponse> pageBlogs(PageParam pageParam, String keyword) {
         PageParam normalizedPageParam = pageParam == null ? new PageParam() : pageParam;
         Page<Blog> page = new Page<>(normalizedPageParam.getPageNum(), normalizedPageParam.getPageSize());
-        Page<Blog> resultPage = blogMapper.selectPage(page, buildPageQuery(keyword));
+        // 查询条件放在 Mapper XML 中，这里只保留分页参数和响应转换。
+        Page<Blog> resultPage = blogMapper.selectBlogPage(page, normalize(keyword));
         List<BlogResponse> records = resultPage.getRecords().stream()
                 .map(BlogResponse::from)
                 .toList();
@@ -79,27 +79,11 @@ public class BlogService {
 
     private Blog getRequiredBlog(Long id) {
         validateId(id);
-        Blog blog = blogMapper.selectById(id);
+        Blog blog = blogMapper.selectBlogById(id);
         if (blog == null) {
             throw new BusinessException(CommonErrorCode.PARAM_ERROR, "博客不存在");
         }
         return blog;
-    }
-
-    private LambdaQueryWrapper<Blog> buildPageQuery(String keyword) {
-        LambdaQueryWrapper<Blog> queryWrapper = new LambdaQueryWrapper<>();
-        String normalizedKeyword = normalize(keyword);
-        if (!normalizedKeyword.isEmpty()) {
-            queryWrapper.and(wrapper -> wrapper
-                    .like(Blog::getTitle, normalizedKeyword)
-                    .or()
-                    .like(Blog::getDescription, normalizedKeyword)
-                    .or()
-                    .like(Blog::getContent, normalizedKeyword)
-            );
-        }
-        queryWrapper.orderByDesc(Blog::getUpdateTime).orderByDesc(Blog::getId);
-        return queryWrapper;
     }
 
     private void applyCreateFields(Blog blog, CreateBlogRequest request) {

@@ -1,17 +1,11 @@
 package com.example.study.demo.auth.repository;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.study.demo.auth.domain.DemoAccount;
 import com.example.study.demo.auth.entity.DemoAuthAccount;
-import com.example.study.demo.auth.entity.DemoAuthAccountRole;
-import com.example.study.demo.auth.entity.DemoAuthPermission;
 import com.example.study.demo.auth.entity.DemoAuthRole;
-import com.example.study.demo.auth.entity.DemoAuthRolePermission;
 import com.example.study.demo.auth.mapper.DemoAuthAccountMapper;
-import com.example.study.demo.auth.mapper.DemoAuthAccountRoleMapper;
 import com.example.study.demo.auth.mapper.DemoAuthPermissionMapper;
 import com.example.study.demo.auth.mapper.DemoAuthRoleMapper;
-import com.example.study.demo.auth.mapper.DemoAuthRolePermissionMapper;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -26,31 +20,23 @@ public class DemoAccountRepository {
     private final DemoAuthAccountMapper accountMapper;
     private final DemoAuthRoleMapper roleMapper;
     private final DemoAuthPermissionMapper permissionMapper;
-    private final DemoAuthAccountRoleMapper accountRoleMapper;
-    private final DemoAuthRolePermissionMapper rolePermissionMapper;
 
     public DemoAccountRepository(
             DemoAuthAccountMapper accountMapper,
             DemoAuthRoleMapper roleMapper,
-            DemoAuthPermissionMapper permissionMapper,
-            DemoAuthAccountRoleMapper accountRoleMapper,
-            DemoAuthRolePermissionMapper rolePermissionMapper
+            DemoAuthPermissionMapper permissionMapper
     ) {
         this.accountMapper = accountMapper;
         this.roleMapper = roleMapper;
         this.permissionMapper = permissionMapper;
-        this.accountRoleMapper = accountRoleMapper;
-        this.rolePermissionMapper = rolePermissionMapper;
     }
 
     public Optional<DemoAccount> findByUsername(String username) {
         if (username == null || username.isBlank()) {
             return Optional.empty();
         }
-        // 登录入口只接受启用账号，停用账号等价于不存在。
-        DemoAuthAccount account = accountMapper.selectOne(new LambdaQueryWrapper<DemoAuthAccount>()
-                .eq(DemoAuthAccount::getUsername, username.trim())
-                .eq(DemoAuthAccount::getEnabled, true));
+        // 登录入口只接受启用账号，停用账号等价于不存在；具体 SQL 写在 XML 中。
+        DemoAuthAccount account = accountMapper.selectEnabledByUsername(username.trim());
         return toDemoAccount(account);
     }
 
@@ -58,10 +44,7 @@ public class DemoAccountRepository {
         if (accountId == null || accountId <= 0) {
             return Optional.empty();
         }
-        DemoAuthAccount account = accountMapper.selectById(accountId);
-        if (account == null || !Boolean.TRUE.equals(account.getEnabled())) {
-            return Optional.empty();
-        }
+        DemoAuthAccount account = accountMapper.selectEnabledById(accountId);
         return toDemoAccount(account);
     }
 
@@ -90,19 +73,8 @@ public class DemoAccountRepository {
     }
 
     private List<DemoAuthRole> loadRoles(Long accountId) {
-        // 先查关联表，再回角色表取 code，保持表结构接近真实 RBAC。
-        List<Long> roleIds = accountRoleMapper.selectList(new LambdaQueryWrapper<DemoAuthAccountRole>()
-                        .eq(DemoAuthAccountRole::getAccountId, accountId))
-                .stream()
-                .map(DemoAuthAccountRole::getRoleId)
-                .distinct()
-                .toList();
-        if (roleIds.isEmpty()) {
-            return List.of();
-        }
-        return roleMapper.selectList(new LambdaQueryWrapper<DemoAuthRole>()
-                .in(DemoAuthRole::getId, roleIds)
-                .orderByAsc(DemoAuthRole::getId));
+        // 角色查询放到 XML，学习真实项目里常见的 join 写法。
+        return roleMapper.selectByAccountId(accountId);
     }
 
     private List<String> loadPermissions(List<Long> roleIds) {
@@ -111,21 +83,6 @@ public class DemoAccountRepository {
         }
 
         // 权限来自角色，不直接绑在账号上，方便后续演示角色授权变更。
-        List<Long> permissionIds = rolePermissionMapper.selectList(new LambdaQueryWrapper<DemoAuthRolePermission>()
-                        .in(DemoAuthRolePermission::getRoleId, roleIds))
-                .stream()
-                .map(DemoAuthRolePermission::getPermissionId)
-                .distinct()
-                .toList();
-        if (permissionIds.isEmpty()) {
-            return List.of();
-        }
-
-        return permissionMapper.selectList(new LambdaQueryWrapper<DemoAuthPermission>()
-                        .in(DemoAuthPermission::getId, permissionIds)
-                        .orderByAsc(DemoAuthPermission::getId))
-                .stream()
-                .map(DemoAuthPermission::getPermissionCode)
-                .toList();
+        return permissionMapper.selectPermissionCodesByRoleIds(roleIds);
     }
 }

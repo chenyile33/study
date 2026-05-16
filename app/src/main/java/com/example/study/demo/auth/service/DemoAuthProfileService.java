@@ -3,6 +3,7 @@ package com.example.study.demo.auth.service;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.common.core.page.PageParam;
 import com.example.common.core.page.PageResult;
+import com.example.study.demo.auth.domain.AuthProfileRecord;
 import com.example.study.demo.auth.dto.AuthProfileResponse;
 import com.example.study.demo.auth.repository.DemoAuthProfileRepository;
 import org.springframework.stereotype.Service;
@@ -20,9 +21,9 @@ public class DemoAuthProfileService {
 
     public PageResult<AuthProfileResponse> pageProfiles(PageParam pageParam, String keyword) {
         PageParam normalizedPageParam = pageParam == null ? new PageParam() : pageParam;
-        Page<DemoAuthProfileRepository.ProfileRecord> profilePage = profileRepository.page(normalizedPageParam, keyword);
+        Page<AuthProfileRecord> profilePage = profileRepository.page(normalizedPageParam, keyword);
         List<AuthProfileResponse> records = profilePage.getRecords().stream()
-                .map(record -> AuthProfileResponse.from(record.account(), record.profile()))
+                .map(AuthProfileResponse::from)
                 .toList();
         return PageResult.of(records, profilePage.getTotal(), profilePage.getCurrent(), profilePage.getSize());
     }

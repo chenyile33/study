@@ -1,7 +1,6 @@
 package com.example.study.demo.auth.dto;
 
-import com.example.study.demo.auth.entity.DemoAuthAccount;
-import com.example.study.demo.auth.entity.DemoAuthProfile;
+import com.example.study.demo.auth.domain.AuthProfileRecord;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -29,14 +28,14 @@ public class AuthProfileResponse {
         this.createTime = createTime;
     }
 
-    public static AuthProfileResponse from(DemoAuthAccount account, DemoAuthProfile profile) {
+    public static AuthProfileResponse from(AuthProfileRecord record) {
         return new AuthProfileResponse(
-                account.getId(),
-                account.getUsername(),
-                profile.getNickname(),
-                profile.getEmail(),
-                account.getEnabled(),
-                profile.getCreateTime()
+                record.getAccountId(),
+                record.getUsername(),
+                record.getNickname(),
+                record.getEmail(),
+                record.getEnabled(),
+                record.getCreateTime()
         );
     }
 }

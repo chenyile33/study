@@ -1,6 +1,5 @@
 package com.example.study.demo.auth.repository;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.example.common.core.error.CommonErrorCode;
 import com.example.common.core.exception.BusinessException;
 import com.example.study.demo.auth.entity.DemoAuthAccount;
@@ -42,9 +41,7 @@ public class DemoRegistrationRepository {
         if (username == null || username.isBlank()) {
             return false;
         }
-        Long count = accountMapper.selectCount(new LambdaQueryWrapper<DemoAuthAccount>()
-                .eq(DemoAuthAccount::getUsername, username.trim()));
-        return count != null && count > 0;
+        return accountMapper.countByUsername(username.trim()) > 0;
     }
 
     public RegisteredAccount saveUserAccount(String username, String passwordHash, String nickname, String email) {
@@ -56,8 +53,8 @@ public class DemoRegistrationRepository {
         account.setUpdateTime(LocalDateTime.now());
         accountMapper.insert(account);
 
-        DemoAuthRole userRole = roleMapper.selectOne(new LambdaQueryWrapper<DemoAuthRole>()
-                .eq(DemoAuthRole::getRoleCode, DEFAULT_ROLE_CODE));
+        // 默认角色由初始化 SQL 提供；查询写在 XML，注册流程只关心业务含义。
+        DemoAuthRole userRole = roleMapper.selectByRoleCode(DEFAULT_ROLE_CODE);
         if (userRole == null) {
             throw new BusinessException(CommonErrorCode.PARAM_ERROR, "默认USER角色不存在");
         }

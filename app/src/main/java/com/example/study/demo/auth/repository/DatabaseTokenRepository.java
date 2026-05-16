@@ -47,7 +47,8 @@ public class DatabaseTokenRepository {
             return Optional.empty();
         }
 
-        DemoAuthToken tokenEntity = tokenMapper.selectById(token.trim());
+        // token 查询走 XML，方便观察“token -> account”的服务端状态恢复入口。
+        DemoAuthToken tokenEntity = tokenMapper.selectByToken(token.trim());
         if (tokenEntity == null) {
             return Optional.empty();
         }
