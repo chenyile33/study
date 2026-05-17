@@ -12,4 +12,6 @@ import java.util.List;
 public interface DemoAuthPermissionMapper extends BaseMapper<DemoAuthPermission> {
 
     List<String> selectPermissionCodesByRoleIds(@Param("roleIds") List<Long> roleIds);
+
+    List<DemoAuthPermission> selectPermissionsByRoleIds(@Param("roleIds") List<Long> roleIds);
 }

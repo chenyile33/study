@@ -1,5 +1,5 @@
 -- 认证 Demo 初始化脚本。
--- 当前仍然是 opaque token 方案，但账号、角色、权限和 token 状态都落到 MySQL。
+-- 当前同时演示 opaque token 和 JWT；账号、角色、权限和 opaque token 状态都落到 MySQL。
 
 CREATE DATABASE IF NOT EXISTS `study_demo`
     DEFAULT CHARACTER SET utf8mb4
@@ -111,7 +111,13 @@ INSERT INTO `demo_auth_permission` (`id`, `permission_code`, `permission_name`) 
     (4, 'blog:create', '创建博客'),
     (5, 'blog:update', '更新博客'),
     (6, 'blog:delete', '删除博客'),
-    (7, 'auth:profile:read', '分页查询认证账号资料')
+    (7, 'auth:profile:read', '分页查询认证账号资料'),
+    (8, 'auth:account:read', '查看认证账号管理详情'),
+    (9, 'auth:account:write', '修改认证账号状态'),
+    (10, 'auth:role:read', '查看认证角色'),
+    (11, 'auth:role:write', '分配账号角色'),
+    (12, 'auth:permission:read', '查看认证权限码'),
+    (13, 'auth:permission:write', '分配角色权限码')
 ON DUPLICATE KEY UPDATE
     `permission_code` = VALUES(`permission_code`),
     `permission_name` = VALUES(`permission_name`);
@@ -136,5 +142,11 @@ INSERT IGNORE INTO `demo_auth_role_permission` (`role_id`, `permission_id`) VALU
     (1, 5),
     (1, 6),
     (1, 7),
+    (1, 8),
+    (1, 9),
+    (1, 10),
+    (1, 11),
+    (1, 12),
+    (1, 13),
     (2, 1),
     (2, 3);

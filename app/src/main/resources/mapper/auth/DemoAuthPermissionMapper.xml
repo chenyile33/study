@@ -4,8 +4,25 @@
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.example.study.demo.auth.mapper.DemoAuthPermissionMapper">
 
+    <resultMap id="DemoAuthPermissionMap" type="com.example.study.demo.auth.entity.DemoAuthPermission">
+        <id property="id" column="id"/>
+        <result property="permissionCode" column="permission_code"/>
+        <result property="permissionName" column="permission_name"/>
+    </resultMap>
+
     <select id="selectPermissionCodesByRoleIds" resultType="string">
         SELECT DISTINCT p.permission_code
+        FROM demo_auth_role_permission rp
+        INNER JOIN demo_auth_permission p ON p.id = rp.permission_id
+        WHERE rp.role_id IN
+        <foreach collection="roleIds" item="roleId" open="(" separator="," close=")">
+            #{roleId}
+        </foreach>
+        ORDER BY p.id ASC
+    </select>
+
+    <select id="selectPermissionsByRoleIds" resultMap="DemoAuthPermissionMap">
+        SELECT DISTINCT p.id, p.permission_code, p.permission_name
         FROM demo_auth_role_permission rp
         INNER JOIN demo_auth_permission p ON p.id = rp.permission_id
         WHERE rp.role_id IN
