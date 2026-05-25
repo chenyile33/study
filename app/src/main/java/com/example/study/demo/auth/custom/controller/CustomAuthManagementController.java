@@ -1,4 +1,4 @@
-package com.example.study.demo.auth.controller;
+package com.example.study.demo.auth.custom.controller;
 
 import com.example.common.core.auth.authorization.RequirePermissions;
 import com.example.common.core.result.Result;
@@ -9,6 +9,7 @@ import com.example.study.demo.auth.dto.AuthPermissionResponse;
 import com.example.study.demo.auth.dto.AuthRoleResponse;
 import com.example.study.demo.auth.dto.UpdateAccountEnabledRequest;
 import com.example.study.demo.auth.service.DemoAuthManagementService;
+import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -21,17 +22,16 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 /**
- * 认证管理 Demo，演示账号状态、角色和权限码如何被后台接口管理。
+ * common 自研权限注解版本的认证管理 Demo。
+ *
+ * <p>这些接口通过 @RequirePermissions 声明权限码，由 common 的 AuthorizationInterceptor 执行校验。</p>
  */
 @RestController
-@RequestMapping("/api/auth/management")
-public class AuthManagementController {
+@RequestMapping("/api/custom-auth/management")
+public class CustomAuthManagementController {
 
-    private final DemoAuthManagementService managementService;
-
-    public AuthManagementController(DemoAuthManagementService managementService) {
-        this.managementService = managementService;
-    }
+    @Resource
+    private DemoAuthManagementService managementService;
 
     @RequirePermissions("auth:account:read")
     @GetMapping("/accounts/{accountId}")

@@ -1,4 +1,4 @@
-package com.example.study.demo.auth.controller;
+package com.example.study.demo.auth.custom.controller;
 
 import com.example.common.core.auth.AuthContext;
 import com.example.common.core.auth.authorization.RequirePermissions;
@@ -9,14 +9,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 受保护接口示例，用来验证不带 token 返回 401，带有效 token 才能访问。
+ * 只使用 common 自研授权注解的受保护接口示例。
+ *
+ * <p>这里展示 AuthContext、@RequireRoles、@RequirePermissions 这一套轻量写法。</p>
  */
 @RestController
-@RequestMapping("/api/secure")
-public class SecureDemoController {
+@RequestMapping("/api/custom-auth/secure")
+public class CustomSecureDemoController {
 
     @GetMapping("/ping")
     public Result<String> ping() {
+        // common 自研认证写法：Controller 直接从 AuthContext 读取当前主体。
         return Result.success("pong, " + AuthContext.requirePrincipal().getPrincipalName());
     }
 

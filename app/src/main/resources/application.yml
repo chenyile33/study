@@ -22,9 +22,9 @@ common:
   auth:
     enabled: true
     permit-paths:
-      - /api/auth/login
-      - /api/auth/jwt/login
-      - /api/auth/register
+      - /api/custom-auth/login
+      - /api/custom-auth/jwt/login
+      - /api/custom-auth/register
 
 demo:
   auth:

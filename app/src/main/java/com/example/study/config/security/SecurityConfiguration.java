@@ -1,23 +1,27 @@
 package com.example.study.config.security;
 
+import com.example.common.web.auth.AuthFilter;
 import com.example.common.web.auth.CommonAuthProperties;
 import jakarta.annotation.Resource;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
 
 /**
- * Spring Security 最小接入配置。
+ * Spring Security API 安全配置。
  *
- * <p>这个类属于 Spring Security 学习阶段一：先让请求进入 Spring Security 过滤器链，
- * 并显式写出前后端分离 API 常见的基础安全规则。这里暂时不读取 Bearer token，
- * 也不把现有 AuthContext 映射到 SecurityContextHolder，这些留到后续阶段对照学习。</p>
+ * <p>阶段二接入 Bearer token，并把现有认证主体同步映射到 Spring Security 上下文。
+ * 阶段四开始启用方法级安全，用 @PreAuthorize 对照现有授权注解。</p>
  */
 // 本配置类没有在 @Bean 方法之间互相调用，关闭代理即可。
 @Configuration(proxyBeanMethods = false)
+@EnableMethodSecurity
 public class SecurityConfiguration {
 
     /**
@@ -29,11 +33,16 @@ public class SecurityConfiguration {
     @Resource
     private CommonAuthProperties commonAuthProperties;
 
+    @Resource
+    private BearerTokenAuthenticationFilter bearerTokenAuthenticationFilter;
+
+    @Resource
+    private SecurityJsonExceptionHandler securityJsonExceptionHandler;
+
     /**
      * 定义 app 模块自己的 Spring Security 过滤器链。
      *
-     * <p>阶段一只做最小接入：登录、注册等白名单接口允许匿名访问，
-     * 其他接口默认要求已认证。真正的 Bearer token 认证逻辑会在阶段二接入。</p>
+     * <p>登录、注册等白名单接口允许匿名访问；其他接口由 Bearer token 过滤器完成认证。</p>
      */
     @Bean
     public SecurityFilterChain appSecurityFilterChain(
@@ -53,15 +62,46 @@ public class SecurityConfiguration {
                 .requestCache(AbstractHttpConfigurer::disable)
                 // 前后端分离 token 模式不依赖服务端 Session 保存登录态。
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // 过滤器链不会进入 ControllerAdvice，这里单独接管未登录和权限不足响应。
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(securityJsonExceptionHandler)
+                        .accessDeniedHandler(securityJsonExceptionHandler))
+                // Bearer token 校验成功后，AuthorizationFilter 才能看到已认证的 Authentication。
+                .addFilterBefore(bearerTokenAuthenticationFilter, AuthorizationFilter.class)
                 .authorizeHttpRequests(authorize -> {
                     // 登录、JWT 登录、注册等公开接口来自 application.yml 的 common.auth.permit-paths。
                     if (permitPaths.length > 0) {
                         authorize.requestMatchers(permitPaths).permitAll();
                     }
-                    // 阶段一先观察“引入 Spring Security 后默认保护接口”的效果。
-                    authorize.anyRequest().authenticated();
+                    if (commonAuthProperties.isEnabled()) {
+                        authorize.anyRequest().authenticated();
+                    } else {
+                        // common.auth.enabled=false 时，app 也不应被 Spring Security 意外拦截。
+                        authorize.anyRequest().permitAll();
+                    }
                 });
 
         return http.build();
+    }
+
+    /**
+     * 只让 BearerTokenAuthenticationFilter 进入 Spring Security 过滤器链，避免被 Servlet 容器重复执行。
+     */
+    @Bean
+    public FilterRegistrationBean<BearerTokenAuthenticationFilter> bearerTokenAuthenticationFilterRegistration(
+            BearerTokenAuthenticationFilter filter) {
+        FilterRegistrationBean<BearerTokenAuthenticationFilter> registration = new FilterRegistrationBean<>(filter);
+        registration.setEnabled(false);
+        return registration;
+    }
+
+    /**
+     * 阶段二开始由 Spring Security 过滤器负责认证，避免 common AuthFilter 再被 Servlet 容器执行。
+     */
+    @Bean
+    public FilterRegistrationBean<AuthFilter> commonAuthFilterRegistration(AuthFilter commonAuthFilter) {
+        FilterRegistrationBean<AuthFilter> registration = new FilterRegistrationBean<>(commonAuthFilter);
+        registration.setEnabled(false);
+        return registration;
     }
 }
