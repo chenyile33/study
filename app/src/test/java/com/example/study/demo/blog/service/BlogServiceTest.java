@@ -18,7 +18,7 @@ class BlogServiceTest {
 
     @Test
     void createBlogShouldRejectNullRequestBeforeMapper() {
-        BusinessException exception = assertThrows(BusinessException.class, () -> blogService.createBlog(null));
+        BusinessException exception = assertThrows(BusinessException.class, () -> blogService.createBlog(null, null));
 
         assertEquals(CommonErrorCode.PARAM_ERROR.getCode(), exception.getCode());
         verifyNoInteractions(blogMapper);
@@ -29,7 +29,7 @@ class BlogServiceTest {
         CreateBlogRequest request = validCreateRequest();
         request.setTitle(" ");
 
-        BusinessException exception = assertThrows(BusinessException.class, () -> blogService.createBlog(request));
+        BusinessException exception = assertThrows(BusinessException.class, () -> blogService.createBlog(request, null));
 
         assertEquals(CommonErrorCode.PARAM_ERROR.getCode(), exception.getCode());
         verifyNoInteractions(blogMapper);
@@ -40,7 +40,7 @@ class BlogServiceTest {
         CreateBlogRequest request = validCreateRequest();
         request.setPublished(null);
 
-        BusinessException exception = assertThrows(BusinessException.class, () -> blogService.createBlog(request));
+        BusinessException exception = assertThrows(BusinessException.class, () -> blogService.createBlog(request, null));
 
         assertEquals(CommonErrorCode.PARAM_ERROR.getCode(), exception.getCode());
         verifyNoInteractions(blogMapper);

@@ -1,7 +1,7 @@
 package com.example.study.demo.blog.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.example.common.core.auth.AuthContext;
+import com.example.common.core.auth.AuthPrincipal;
 import com.example.common.core.error.CommonErrorCode;
 import com.example.common.core.exception.BusinessException;
 import com.example.common.core.page.PageParam;
@@ -26,13 +26,13 @@ public class BlogService {
         this.blogMapper = blogMapper;
     }
 
-    public BlogResponse createBlog(CreateBlogRequest request) {
+    public BlogResponse createBlog(CreateBlogRequest request, AuthPrincipal principal) {
         validateCreateRequest(request);
 
         Blog blog = new Blog();
         applyCreateFields(blog, request);
-        // 创建人来自认证上下文，不信任客户端自己传入的 userId。
-        blog.setUserId(currentUserId());
+        // 创建人来自 Spring Security 当前主体，不信任客户端自己传入的 userId。
+        blog.setUserId(currentUserId(principal));
 
         LocalDateTime now = LocalDateTime.now();
         blog.setCreateTime(now);
@@ -159,8 +159,9 @@ public class BlogService {
         return value == null ? "" : value.trim();
     }
 
-    private Long currentUserId() {
-        String principalId = AuthContext.requirePrincipal().getPrincipalId();
+    private Long currentUserId(AuthPrincipal principal) {
+        AssertUtils.notNull(principal, CommonErrorCode.PARAM_ERROR, "当前登录用户不能为空");
+        String principalId = principal.getPrincipalId();
         try {
             return Long.valueOf(principalId);
         } catch (NumberFormatException exception) {

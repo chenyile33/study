@@ -54,7 +54,7 @@ public class DemoTokenService implements TokenAuthenticator {
     }
 
     /**
-     * AuthFilter 会调用这个方法，把请求中的 token 校验成 AuthPrincipal。
+     * common AuthFilter 和 Spring Security BearerTokenAuthenticationFilter 都会复用这个入口。
      */
     @Override
     public AuthPrincipal authenticate(String token) {

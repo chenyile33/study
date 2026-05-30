@@ -1,12 +1,9 @@
 package com.example.study.config.security;
 
-import com.example.common.core.auth.AuthContext;
 import com.example.common.core.auth.AuthException;
 import com.example.common.core.auth.AuthPrincipal;
-import com.example.common.core.auth.AuthScope;
 import com.example.common.core.auth.TokenAuthenticator;
 import com.example.common.web.auth.BearerTokenResolver;
-import com.example.common.web.auth.CommonAuthProperties;
 import jakarta.annotation.Resource;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -21,8 +18,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.util.AntPathMatcher;
-import org.springframework.util.PathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -41,15 +36,10 @@ public class BearerTokenAuthenticationFilter extends OncePerRequestFilter {
     private static final String ROLE_PREFIX = "ROLE_";
 
     @Resource
-    private CommonAuthProperties commonAuthProperties;
-
-    @Resource
     private BearerTokenResolver tokenResolver;
 
     @Resource
     private TokenAuthenticator tokenAuthenticator;
-
-    private final PathMatcher pathMatcher = new AntPathMatcher();
 
     @Override
     protected void doFilterInternal(
@@ -57,7 +47,7 @@ public class BearerTokenAuthenticationFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
-        if (!commonAuthProperties.isEnabled() || isPermitPath(request)) {
+        if (isPermitPath(request)) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -75,9 +65,10 @@ public class BearerTokenAuthenticationFilter extends OncePerRequestFilter {
         securityContext.setAuthentication(authentication);
         SecurityContextHolder.setContext(securityContext);
 
-        // 当前 Controller 仍在读取 AuthContext，所以阶段二先同步写入两套上下文，方便对照学习。
-        try (AuthScope ignored = AuthContext.open(principal)) {
+        try {
             filterChain.doFilter(request, response);
+        } finally {
+            SecurityContextHolder.clearContext();
         }
     }
 
@@ -110,17 +101,6 @@ public class BearerTokenAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private boolean isPermitPath(HttpServletRequest request) {
-        String requestPath = normalizeRequestPath(request);
-        return commonAuthProperties.getPermitPaths().stream()
-                .anyMatch(pattern -> pathMatcher.match(pattern, requestPath));
-    }
-
-    private String normalizeRequestPath(HttpServletRequest request) {
-        String requestUri = request.getRequestURI();
-        String contextPath = request.getContextPath();
-        if (contextPath != null && !contextPath.isBlank() && requestUri.startsWith(contextPath)) {
-            requestUri = requestUri.substring(contextPath.length());
-        }
-        return requestUri.isBlank() ? "/" : requestUri;
+        return SecurityPaths.isSecurityPermitRequest(request);
     }
 }

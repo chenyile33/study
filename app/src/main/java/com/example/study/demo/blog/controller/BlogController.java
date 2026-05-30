@@ -1,6 +1,6 @@
 package com.example.study.demo.blog.controller;
 
-import com.example.common.core.auth.authorization.RequirePermissions;
+import com.example.common.core.auth.AuthPrincipal;
 import com.example.common.core.page.PageParam;
 import com.example.common.core.page.PageResult;
 import com.example.common.core.result.Result;
@@ -11,6 +11,8 @@ import com.example.study.demo.blog.service.BlogService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -34,21 +36,22 @@ public class BlogController {
         this.blogService = blogService;
     }
 
-    @RequirePermissions("blog:create")
+    @PreAuthorize("hasAuthority('blog:create')")
     @PostMapping
-    public Result<BlogResponse> createBlog(@Valid @RequestBody(required = false) CreateBlogRequest request) {
+    public Result<BlogResponse> createBlog(@Valid @RequestBody(required = false) CreateBlogRequest request,
+                                           @AuthenticationPrincipal AuthPrincipal principal) {
         log.info("创建博客，title={}", request == null ? null : request.getTitle());
-        return Result.success(blogService.createBlog(request));
+        return Result.success(blogService.createBlog(request, principal));
     }
 
-    @RequirePermissions("blog:read")
+    @PreAuthorize("hasAuthority('blog:read')")
     @GetMapping("/{id}")
     public Result<BlogResponse> getBlog(@PathVariable Long id) {
         log.info("查询博客详情，id={}", id);
         return Result.success(blogService.getBlog(id));
     }
 
-    @RequirePermissions("blog:read")
+    @PreAuthorize("hasAuthority('blog:read')")
     @GetMapping
     public Result<PageResult<BlogResponse>> pageBlogs(
             @ModelAttribute PageParam pageParam,
@@ -59,7 +62,7 @@ public class BlogController {
         return Result.success(blogService.pageBlogs(pageParam, keyword));
     }
 
-    @RequirePermissions("blog:update")
+    @PreAuthorize("hasAuthority('blog:update')")
     @PutMapping("/{id}")
     public Result<BlogResponse> updateBlog(
             @PathVariable Long id,
@@ -69,7 +72,7 @@ public class BlogController {
         return Result.success(blogService.updateBlog(id, request));
     }
 
-    @RequirePermissions("blog:delete")
+    @PreAuthorize("hasAuthority('blog:delete')")
     @DeleteMapping("/{id}")
     public Result<Void> deleteBlog(@PathVariable Long id) {
         log.info("删除博客，id={}", id);
