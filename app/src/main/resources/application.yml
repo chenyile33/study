@@ -1,7 +1,33 @@
 spring:
   application:
     name: app
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/study_demo?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: root
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    banner: false
 
 logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId}] %logger{36} - %msg%n"
+
+common:
+  auth:
+    enabled: true
+    permit-paths:
+      - /api/custom-auth/login
+      - /api/custom-auth/jwt/login
+      - /api/custom-auth/register
+
+demo:
+  auth:
+    jwt:
+      secret: study-demo-jwt-secret-change-me-at-least-32-bytes
+      ttl-seconds: 7200

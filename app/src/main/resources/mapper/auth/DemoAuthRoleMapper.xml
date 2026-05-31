@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.study.demo.auth.mapper.DemoAuthRoleMapper">
+
+    <resultMap id="DemoAuthRoleMap" type="com.example.study.demo.auth.entity.DemoAuthRole">
+        <id property="id" column="id"/>
+        <result property="roleCode" column="role_code"/>
+        <result property="roleName" column="role_name"/>
+    </resultMap>
+
+    <select id="selectByAccountId" resultMap="DemoAuthRoleMap">
+        SELECT r.id, r.role_code, r.role_name
+        FROM demo_auth_account_role ar
+        INNER JOIN demo_auth_role r ON r.id = ar.role_id
+        WHERE ar.account_id = #{accountId}
+        ORDER BY r.id ASC
+    </select>
+
+    <select id="selectByRoleCode" resultMap="DemoAuthRoleMap">
+        SELECT id, role_code, role_name
+        FROM demo_auth_role
+        WHERE role_code = #{roleCode}
+        LIMIT 1
+    </select>
+</mapper>
