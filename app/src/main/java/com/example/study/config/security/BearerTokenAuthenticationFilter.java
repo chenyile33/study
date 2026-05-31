@@ -60,7 +60,7 @@ public class BearerTokenAuthenticationFilter extends OncePerRequestFilter {
         }
 
         AuthPrincipal principal = authenticate(token);
-        Authentication authentication = createAuthentication(principal, token);
+        Authentication authentication = createAuthentication(principal);
         SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
         securityContext.setAuthentication(authentication);
         SecurityContextHolder.setContext(securityContext);
@@ -85,8 +85,9 @@ public class BearerTokenAuthenticationFilter extends OncePerRequestFilter {
         }
     }
 
-    private Authentication createAuthentication(AuthPrincipal principal, String token) {
-        return new UsernamePasswordAuthenticationToken(principal, token, toAuthorities(principal));
+    private Authentication createAuthentication(AuthPrincipal principal) {
+        // token 只用于本次校验，不再放进 Authentication，避免后续日志或调试时误暴露凭证。
+        return new UsernamePasswordAuthenticationToken(principal, null, toAuthorities(principal));
     }
 
     private List<GrantedAuthority> toAuthorities(AuthPrincipal principal) {

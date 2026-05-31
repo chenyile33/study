@@ -134,13 +134,35 @@ public class AuthFilter extends OncePerRequestFilter {
     }
 
     private String toJson(int code, String message) {
-        return "{\"code\":" + code + ",\"message\":\"" + escapeJson(message) + "\",\"data\":null}";
+        return "{\"code\":" + code + ",\"message\":\"" + escapeJson(message)
+                + "\",\"data\":null,\"success\":false}";
     }
 
     private String escapeJson(String value) {
         if (value == null) {
             return "";
         }
-        return value.replace("\\", "\\\\").replace("\"", "\\\"");
+
+        StringBuilder escapedValue = new StringBuilder(value.length());
+        for (int index = 0; index < value.length(); index++) {
+            char current = value.charAt(index);
+            switch (current) {
+                case '\\' -> escapedValue.append("\\\\");
+                case '"' -> escapedValue.append("\\\"");
+                case '\b' -> escapedValue.append("\\b");
+                case '\f' -> escapedValue.append("\\f");
+                case '\n' -> escapedValue.append("\\n");
+                case '\r' -> escapedValue.append("\\r");
+                case '\t' -> escapedValue.append("\\t");
+                default -> {
+                    if (current < 0x20) {
+                        escapedValue.append(String.format("\\u%04x", (int) current));
+                    } else {
+                        escapedValue.append(current);
+                    }
+                }
+            }
+        }
+        return escapedValue.toString();
     }
 }

@@ -60,6 +60,7 @@ class AuthFilterTest {
 
         assertEquals(401, response.getStatus());
         assertTrue(response.getContentAsString().contains("\"code\":" + AuthErrorCode.UNAUTHORIZED.getCode()));
+        assertTrue(response.getContentAsString().contains("\"success\":false"));
         assertFalse(chainCalled.get());
     }
 
@@ -78,6 +79,21 @@ class AuthFilterTest {
         assertEquals(401, response.getStatus());
         assertTrue(response.getContentAsString().contains("bad token"));
         assertFalse(chainCalled.get());
+    }
+
+    @Test
+    void authErrorMessageShouldKeepJsonValidWhenMessageHasSpecialCharacters() throws Exception {
+        AuthFilter filter = authFilter(enabledProperties(), token -> {
+            throw new AuthException(AuthErrorCode.UNAUTHORIZED, "bad \"token\"\nnext");
+        });
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/secure/ping");
+        request.addHeader("Authorization", "Bearer bad-token");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        filter.doFilter(request, response, markCalled(new AtomicBoolean(false)));
+
+        assertEquals(401, response.getStatus());
+        assertTrue(response.getContentAsString().contains("bad \\\"token\\\"\\nnext"));
     }
 
     @Test
